@@ -8,366 +8,175 @@
 <meta name="apple-mobile-web-app-title" content="ריצה חכמה">
 <meta name="theme-color" content="#080810">
 <title>ריצה חכמה 🏃</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --warmup: #f59e0b;
-  --run: #ff3d3d;
-  --walk: #00d97e;
-  --done: #818cf8;
-  --bg: #080810;
-  --card: #0f0f1a;
-  --input: #161625;
-  --text: #eef2ff;
-  --muted: #4a5270;
-  --border: #1a1a2e;
-  --phase: var(--run);
-  --phase-glow: rgba(255,61,61,0.12);
+  --warmup:#f59e0b; --run:#ff3d3d; --walk:#00d97e; --done:#818cf8;
+  --bg:#080810; --card:#0f0f1a; --input:#161625;
+  --text:#eef2ff; --muted:#4a5270; --border:#1a1a2e;
+  --phase:var(--run); --phase-glow:rgba(255,61,61,0.12);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: 'Heebo', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  direction: rtl;
-  -webkit-font-smoothing: antialiased;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);direction:rtl;-webkit-font-smoothing:antialiased}
+.safe-top{padding-top:max(16px,env(safe-area-inset-top))}
+.safe-bottom{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.screen.active{display:flex}
+.screen-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 20px 40px}
+#phase-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,var(--phase-glow) 0%,transparent 70%);
+  transition:background 1.5s ease;display:none}
+h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px}
+.card-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.card-hint{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.btn-primary{width:100%;padding:18px;background:var(--run);border:none;border-radius:16px;
+  color:#fff;font-family:'Heebo',sans-serif;font-size:19px;font-weight:800;cursor:pointer;
+  transition:transform .1s,opacity .1s}
+.btn-primary:active{transform:scale(.97);opacity:.9}
+.btn-ghost{background:none;border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;
+  color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;flex-shrink:0}
 
-/* ── Safe area ── */
-.safe-top { padding-top: max(16px, env(safe-area-inset-top)); }
-.safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+/* Phase rows */
+.phase-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  background:var(--input);border-radius:12px;padding:10px 12px;
+  border-right:3px solid var(--phase-row-color,var(--run))}
+.phase-type-btn{display:flex;align-items:center;gap:5px;border:1.5px solid;border-radius:8px;
+  padding:5px 9px;background:none;cursor:pointer;font-family:'Heebo',sans-serif;
+  font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.phase-min-wrap{display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.phase-min-input{width:52px;text-align:center;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:8px;font-family:'Heebo',sans-serif;
+  font-size:20px;font-weight:800;padding:5px 0;outline:none}
+.phase-min-label{color:var(--muted);font-size:13px}
+.phase-move-btns{display:flex;flex-direction:column;gap:2px}
+.phase-move-btn{background:none;border:none;cursor:pointer;color:var(--muted);
+  font-size:13px;font-weight:700;padding:2px 4px;line-height:1}
+.phase-move-btn:disabled{opacity:.2}
+.phase-del-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px}
+.add-row{display:flex;gap:8px;margin-bottom:14px;flex-direction:row-reverse}
+.add-btn{flex:1;border-radius:10px;padding:10px 0;border:1.5px solid;background:none;cursor:pointer;
+  font-family:'Heebo',sans-serif;font-size:12px;font-weight:700}
+.repeat-row{display:flex;align-items:center;gap:14px;flex-direction:row-reverse}
+.repeat-btn{width:44px;height:44px;border-radius:10px;background:var(--bg);
+  border:1.5px solid var(--border);font-size:24px;font-weight:300;cursor:pointer;
+  color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.repeat-count{font-size:36px;font-weight:900;min-width:50px;text-align:center}
+.repeat-label{color:var(--muted);font-size:14px;flex:1;text-align:left}
+.summary-box{background:var(--card);border:1.5px solid var(--done);border-radius:14px;
+  padding:14px;margin-bottom:20px;text-align:center}
+.summary-main{font-size:20px;font-weight:800}
+.summary-sub{font-size:12px;color:var(--muted);margin-top:3px}
 
-/* ── Screens ── */
-.screen {
-  position: fixed; inset: 0;
-  display: none; flex-direction: column;
-  background: var(--bg);
-  transition: opacity 0.3s ease;
-}
-.screen.active { display: flex; }
-.screen-scroll {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 20px 40px;
-}
+/* Target distance input */
+.target-row{display:flex;align-items:center;gap:10px;flex-direction:row-reverse}
+.target-input{width:80px;text-align:center;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:8px;font-family:'Heebo',sans-serif;
+  font-size:20px;font-weight:800;padding:8px 0;outline:none}
+.target-unit-btn{background:var(--input);border:1.5px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;
+  font-weight:700;cursor:pointer}
+.target-unit-btn.active{border-color:var(--walk);color:var(--walk)}
+.target-clear{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px}
 
-/* ── Phase glow bg ── */
-#phase-glow {
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, var(--phase-glow) 0%, transparent 70%);
-  transition: background 1.5s ease;
-}
+/* Timer */
+#screen-timer{align-items:center;justify-content:center;padding:0 24px}
+.timer-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+  align-items:center;padding:16px 20px;padding-top:max(16px,env(safe-area-inset-top))}
+.timer-exit{background:none;border:none;cursor:pointer;color:var(--muted);
+  font-family:'Heebo',sans-serif;font-size:15px;padding:6px}
+.timer-elapsed{color:var(--muted);font-size:15px;font-weight:600}
+.timer-step{color:var(--muted);font-size:15px;font-weight:600;margin-bottom:10px}
+.timer-phase-label{font-size:26px;font-weight:800;margin-bottom:24px;text-align:center;
+  transition:color .8s;color:var(--phase)}
+.timer-circle-wrap{position:relative;width:260px;height:260px;margin-bottom:18px;flex-shrink:0}
+.timer-svg{width:260px;height:260px;transform:rotate(-90deg)}
+.timer-track{fill:none;stroke:var(--border);stroke-width:7}
+.timer-ring{fill:none;stroke-width:7;stroke-linecap:round;stroke:var(--phase);
+  stroke-dasharray:659.7;stroke-dashoffset:0;
+  transition:stroke-dashoffset .6s linear,stroke .8s ease}
+.timer-text-wrap{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.timer-countdown{font-size:58px;font-weight:900;letter-spacing:-2px;
+  font-variant-numeric:tabular-nums;color:var(--phase);transition:color .8s;line-height:1}
+.distance-badge{text-align:center;margin-bottom:6px}
+.distance-val{font-size:19px;font-weight:700}
+.distance-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.target-badge{text-align:center;margin-bottom:10px;font-size:13px;color:var(--muted);min-height:18px}
+.dots-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:24px;max-width:300px}
+.dot{height:10px;border-radius:5px;transition:background .4s,width .3s;width:10px}
+.dot.active{width:18px}
+.pause-btn{border:2px solid var(--phase);border-radius:14px;background:none;padding:16px 52px;
+  font-family:'Heebo',sans-serif;font-size:19px;font-weight:700;color:var(--phase);
+  cursor:pointer;transition:border-color .8s,color .8s}
+.pause-btn:active{opacity:.7}
+.done-stats{color:var(--muted);font-size:14px;margin-top:16px;text-align:center;line-height:2;display:none}
 
-/* ── Typography ── */
-h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
-h2 { font-size: 20px; font-weight: 800; }
+/* Background warning banner */
+#bg-warning{position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;
+  font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;text-align:center;
+  padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));z-index:100;display:none}
 
-/* ── Cards ── */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 18px;
-  margin-bottom: 14px;
-}
-.card-title {
-  font-size: 16px; font-weight: 800;
-  margin-bottom: 4px; color: var(--text);
-}
-.card-hint {
-  font-size: 12px; color: var(--muted);
-  margin-bottom: 14px; line-height: 1.5;
-}
-
-/* ── Buttons ── */
-.btn-primary {
-  width: 100%; padding: 18px;
-  background: var(--run); border: none; border-radius: 16px;
-  color: #fff; font-family: 'Heebo', sans-serif;
-  font-size: 19px; font-weight: 800; cursor: pointer;
-  transition: transform 0.1s, opacity 0.1s;
-}
-.btn-primary:active { transform: scale(0.97); opacity: 0.9; }
-.btn-ghost {
-  background: none; border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 8px 14px;
-  color: var(--muted); font-family: 'Heebo', sans-serif;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-}
-.btn-icon {
-  background: var(--input); border: 1px solid var(--border);
-  border-radius: 8px; width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 16px; color: var(--muted);
-  flex-shrink: 0;
-}
-.btn-icon:active { opacity: 0.7; }
-
-/* ── Top bar ── */
-.top-bar {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px 8px;
-  flex-shrink: 0;
-}
-
-/* ── Phase row (setup) ── */
-.phase-row {
-  display: flex; align-items: center;
-  gap: 8px; margin-bottom: 10px;
-  background: var(--input);
-  border-radius: 12px; padding: 10px 12px;
-  border-right: 3px solid var(--phase-row-color, var(--run));
-}
-.phase-type-btn {
-  display: flex; align-items: center; gap: 5px;
-  border: 1.5px solid var(--phase-row-color, var(--run));
-  border-radius: 8px; padding: 5px 9px;
-  background: none; cursor: pointer;
-  font-family: 'Heebo', sans-serif;
-  font-size: 12px; font-weight: 700;
-  color: var(--phase-row-color, var(--run));
-  white-space: nowrap; flex-shrink: 0;
-}
-.phase-min-wrap {
-  display: flex; align-items: center; gap: 4px;
-  flex: 1; justify-content: center;
-}
-.phase-min-input {
-  width: 52px; text-align: center;
-  background: var(--bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
-  font-family: 'Heebo', sans-serif; font-size: 20px; font-weight: 800;
-  padding: 5px 0; outline: none;
-}
-.phase-min-label { color: var(--muted); font-size: 13px; }
-.phase-move-btns { display: flex; flex-direction: column; gap: 2px; }
-.phase-move-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-size: 13px; font-weight: 700;
-  padding: 2px 4px; line-height: 1;
-}
-.phase-move-btn:disabled { opacity: 0.2; }
-.phase-del-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-size: 16px; padding: 4px;
-}
-
-/* ── Add row ── */
-.add-row {
-  display: flex; gap: 8px; margin-bottom: 14px;
-  flex-direction: row-reverse;
-}
-.add-btn {
-  flex: 1; border-radius: 10px; padding: 10px 0;
-  border: 1.5px solid; background: none; cursor: pointer;
-  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 700;
-}
-
-/* ── Repeat control ── */
-.repeat-row {
-  display: flex; align-items: center; gap: 14px;
-  flex-direction: row-reverse;
-}
-.repeat-btn {
-  width: 44px; height: 44px; border-radius: 10px;
-  background: var(--bg); border: 1.5px solid var(--border);
-  font-size: 24px; font-weight: 300; cursor: pointer;
-  color: var(--text); display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.repeat-count {
-  font-size: 36px; font-weight: 900;
-  min-width: 50px; text-align: center; color: var(--text);
-}
-.repeat-label { color: var(--muted); font-size: 14px; flex: 1; text-align: left; }
-
-/* ── Summary box ── */
-.summary-box {
-  background: var(--card); border: 1.5px solid var(--done);
-  border-radius: 14px; padding: 14px; margin-bottom: 20px;
-  text-align: center;
-}
-.summary-main { font-size: 20px; font-weight: 800; }
-.summary-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
-
-/* ── Timer screen ── */
-#screen-timer {
-  align-items: center; justify-content: center;
-  padding: 0 24px;
-}
-.timer-top {
-  position: absolute; top: 0; left: 0; right: 0;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px;
-  padding-top: max(16px, env(safe-area-inset-top));
-}
-.timer-exit {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-family: 'Heebo', sans-serif;
-  font-size: 15px; padding: 6px;
-}
-.timer-elapsed { color: var(--muted); font-size: 15px; font-weight: 600; }
-.timer-step { color: var(--muted); font-size: 15px; font-weight: 600; margin-bottom: 10px; }
-.timer-phase-label {
-  font-size: 26px; font-weight: 800; margin-bottom: 24px;
-  text-align: center; transition: color 0.8s ease;
-  color: var(--phase);
-}
-/* ── SVG circle timer ── */
-.timer-circle-wrap {
-  position: relative; width: 260px; height: 260px;
-  margin-bottom: 20px; flex-shrink: 0;
-}
-.timer-svg { width: 260px; height: 260px; transform: rotate(-90deg); }
-.timer-track { fill: none; stroke: var(--border); stroke-width: 7; }
-.timer-ring {
-  fill: none; stroke-width: 7; stroke-linecap: round;
-  stroke: var(--phase);
-  stroke-dasharray: 659.7;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1s linear, stroke 0.8s ease;
-}
-.timer-text-wrap {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-.timer-countdown {
-  font-size: 60px; font-weight: 900; letter-spacing: -2px;
-  font-variant-numeric: tabular-nums;
-  color: var(--phase); transition: color 0.8s ease;
-  line-height: 1;
-}
-.timer-countdown.done-emoji { font-size: 52px; letter-spacing: 0; }
-/* ── Distance ── */
-.distance-badge {
-  text-align: center; margin-bottom: 14px;
-}
-.distance-val { font-size: 19px; font-weight: 700; }
-.distance-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
-/* ── Dots ── */
-.dots-row {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 6px; margin-bottom: 28px; max-width: 300px;
-}
-.dot {
-  height: 10px; border-radius: 5px;
-  transition: background 0.4s, width 0.3s;
-  width: 10px;
-}
-.dot.active { width: 18px; }
-/* ── Pause btn ── */
-.pause-btn {
-  border: 2px solid var(--phase); border-radius: 14px;
-  background: none; padding: 16px 52px;
-  font-family: 'Heebo', sans-serif; font-size: 19px; font-weight: 700;
-  color: var(--phase); cursor: pointer;
-  transition: border-color 0.8s, color 0.8s;
-}
-.pause-btn:active { opacity: 0.7; }
-
-/* ── Done overlay ── */
-.done-stats {
-  color: var(--muted); font-size: 14px;
-  margin-top: 20px; text-align: center; line-height: 2;
-}
-
-/* ── Bank screen ── */
-.bank-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px 0;
-  padding-top: max(12px, env(safe-area-inset-top));
-}
-.bank-title { font-size: 20px; font-weight: 800; }
-.bank-tabs {
-  display: flex; flex-direction: row-reverse;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px; flex-shrink: 0;
-}
-.bank-tab {
-  flex: 1; padding: 10px 0; text-align: center;
-  background: none; border: none; cursor: pointer;
-  font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 700;
-  color: var(--muted); border-bottom: 2.5px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  margin-bottom: -1px;
-}
-.bank-tab.active { color: var(--phase); border-bottom-color: var(--phase); }
-.bank-list { flex: 1; overflow-y: auto; padding: 0 20px; }
-.bank-hint { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-.msg-row {
-  display: flex; align-items: center; flex-direction: row-reverse;
-  gap: 10px; background: var(--card);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 12px 14px; margin-bottom: 8px;
-}
-.msg-text { flex: 1; font-size: 14px; text-align: right; line-height: 1.4; }
-.msg-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; padding: 2px; }
-.bank-input-row {
-  display: flex; flex-direction: row-reverse; gap: 10px;
-  padding: 12px 20px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border); flex-shrink: 0;
-  background: var(--bg);
-}
-.bank-input {
-  flex: 1; background: var(--input); color: var(--text);
-  border: 1px solid var(--border); border-radius: 12px;
-  padding: 12px 14px; font-family: 'Heebo', sans-serif; font-size: 15px;
-  direction: rtl; outline: none;
-}
-.bank-add-btn {
-  width: 50px; border-radius: 12px; border: none;
-  font-size: 26px; font-weight: 300; cursor: pointer; color: #fff;
-  transition: opacity 0.2s;
-}
-.bank-add-btn:disabled { opacity: 0.3; }
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* ── Install hint ── */
-.install-hint {
-  font-size: 12px; color: var(--muted); text-align: center;
-  padding: 8px 20px 0; line-height: 1.5;
-}
+/* Bank */
+.bank-header{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px 0;padding-top:max(12px,env(safe-area-inset-top))}
+.bank-title{font-size:20px;font-weight:800}
+.bank-tabs{display:flex;flex-direction:row-reverse;border-bottom:1px solid var(--border);
+  margin-bottom:8px;flex-shrink:0}
+.bank-tab{flex:1;padding:10px 0;text-align:center;background:none;border:none;cursor:pointer;
+  font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:var(--muted);
+  border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px}
+.bank-tab.active{color:var(--phase);border-bottom-color:var(--phase)}
+.bank-list{flex:1;overflow-y:auto;padding:0 20px}
+.bank-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.msg-row{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;margin-bottom:8px}
+.msg-text{flex:1;font-size:14px;text-align:right;line-height:1.4}
+.msg-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px}
+.bank-input-row{display:flex;flex-direction:row-reverse;gap:10px;padding:12px 20px;
+  padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);
+  flex-shrink:0;background:var(--bg)}
+.bank-input{flex:1;background:var(--input);color:var(--text);border:1px solid var(--border);
+  border-radius:12px;padding:12px 14px;font-family:'Heebo',sans-serif;font-size:15px;
+  direction:rtl;outline:none}
+.bank-add-btn{width:50px;border-radius:12px;border:none;font-size:26px;font-weight:300;
+  cursor:pointer;color:#fff;transition:opacity .2s}
+.bank-add-btn:disabled{opacity:.3}
+.install-hint{font-size:12px;color:var(--muted);text-align:center;padding:10px 20px 0;line-height:1.5}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
 
 <div id="phase-glow"></div>
+<div id="bg-warning">⚠️ האפליקציה ברקע — חזור לאפליקציה כדי שהטיימר ימשיך לרוץ</div>
 
-<!-- ═══════════════════════════════════════════
-     SETUP SCREEN
-════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     SETUP
+══════════════════════════════════════════ -->
 <div class="screen active safe-top safe-bottom" id="screen-setup">
   <div class="top-bar" style="padding-bottom:4px">
     <h1>ריצה חכמה 🏃</h1>
     <button class="btn-ghost" onclick="goBank()">💬 הודעות</button>
   </div>
   <p style="color:var(--muted);font-size:14px;padding:0 20px 16px">בנה את האימון שלך</p>
-
-  <div class="screen-scroll" id="setup-scroll">
-
-    <!-- Phase list -->
+  <div class="screen-scroll">
     <div class="card">
       <div class="card-title">📋 שלבי האימון</div>
-      <div class="card-hint">לחץ על הסמל לשינוי סוג | חצים לסידור מחדש</div>
+      <div class="card-hint">לחץ על הסמל לשינוי סוג | חצים לסידור</div>
       <div id="phase-list"></div>
     </div>
-
-    <!-- Add buttons -->
     <div class="add-row" id="add-row"></div>
 
-    <!-- Repeat control -->
+    <!-- Repeat -->
     <div class="card" id="repeat-card" style="display:none">
       <div class="card-title">🔁 חזרות</div>
-      <div class="card-hint">השלב הראשון יתבצע פעם אחת בלבד.<br>שאר השלבים יחזרו X פעמים.</div>
+      <div class="card-hint">השלב הראשון (חימום) פעם אחת. שאר השלבים חוזרים X פעמים.</div>
       <div class="repeat-row">
         <button class="repeat-btn" onclick="changeRepeat(-1)">−</button>
         <div class="repeat-count" id="repeat-display">1</div>
@@ -376,31 +185,38 @@ h2 { font-size: 20px; font-weight: 800; }
       </div>
     </div>
 
-    <!-- Summary -->
+    <!-- Target distance -->
+    <div class="card">
+      <div class="card-title">🎯 מרחק יעד (אופציונלי)</div>
+      <div class="card-hint">100 מטר לפני הגעה ליעד — תקבל הודעה קולית.</div>
+      <div class="target-row">
+        <input class="target-input" id="target-input" type="number" min="0" placeholder="0" oninput="updateTargetLabel()">
+        <button class="target-unit-btn active" id="target-unit-m" onclick="setTargetUnit('m')">מ׳</button>
+        <button class="target-unit-btn" id="target-unit-km" onclick="setTargetUnit('km')">ק"מ</button>
+        <button class="target-clear" onclick="clearTarget()">✕ נקה</button>
+      </div>
+      <div id="target-label" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:right"></div>
+    </div>
+
     <div class="summary-box" id="summary-box" style="display:none">
       <div class="summary-main" id="summary-main"></div>
       <div class="summary-sub" id="summary-sub"></div>
     </div>
-
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
-
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     TIMER SCREEN
-════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     TIMER
+══════════════════════════════════════════ -->
 <div class="screen" id="screen-timer">
   <div class="timer-top safe-top">
     <button class="timer-exit" onclick="confirmExit()">✕ סיים</button>
     <div class="timer-elapsed" id="timer-elapsed">00:00</div>
   </div>
-
   <div id="timer-step" class="timer-step"></div>
   <div id="timer-phase-label" class="timer-phase-label">ריצה 🏃</div>
-
-  <!-- Circle -->
   <div class="timer-circle-wrap">
     <svg class="timer-svg" viewBox="0 0 260 260">
       <circle class="timer-track" cx="130" cy="130" r="105"/>
@@ -410,26 +226,19 @@ h2 { font-size: 20px; font-weight: 800; }
       <div class="timer-countdown" id="timer-countdown">00:00</div>
     </div>
   </div>
-
-  <!-- Distance -->
-  <div class="distance-badge" id="distance-badge">
+  <div class="distance-badge">
     <div class="distance-val" id="distance-val">📡 מחפש GPS...</div>
     <div class="distance-lbl" id="distance-lbl" style="display:none">מרחק כולל</div>
   </div>
-
-  <!-- Progress dots -->
+  <div class="target-badge" id="target-badge"></div>
   <div class="dots-row" id="dots-row"></div>
-
-  <!-- Controls -->
   <button class="pause-btn" id="pause-btn" onclick="togglePause()">⏸ עצור</button>
-
-  <!-- Done state (hidden until done) -->
-  <div id="done-stats" class="done-stats" style="display:none"></div>
+  <div id="done-stats" class="done-stats"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     BANK SCREEN
-════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     BANK
+══════════════════════════════════════════ -->
 <div class="screen" id="screen-bank" style="overflow:hidden">
   <div class="bank-header safe-top">
     <div class="bank-title">💬 בנק הודעות</div>
@@ -445,25 +254,25 @@ h2 { font-size: 20px; font-weight: 800; }
   </div>
   <div class="bank-input-row">
     <input class="bank-input" id="bank-input" type="text" placeholder="הוסף הודעה..." dir="rtl">
-    <button class="bank-add-btn" id="bank-add-btn" onclick="addBankMsg()" disabled>+</button>
+    <button class="bank-add-btn" id="bank-add-btn" onclick="addBankMsg()" disabled
+      style="background:var(--run)">+</button>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // CONSTANTS
-// ════════════════════════════════════════════
-const PHASE_TYPES = ['warmup', 'run', 'walk'];
+// ═══════════════════════════════════════════
+const PHASE_TYPES = ['warmup','run','walk'];
 const PHASE_META = {
-  warmup: { label: 'חימום',  emoji: '🚶', color: '#f59e0b', cssVar: '--warmup' },
-  run:    { label: 'ריצה',   emoji: '🏃', color: '#ff3d3d', cssVar: '--run'    },
-  walk:   { label: 'הליכה', emoji: '🚶', color: '#00d97e', cssVar: '--walk'   },
+  warmup:{label:'חימום', emoji:'🚶',color:'#f59e0b'},
+  run:   {label:'ריצה',  emoji:'🏃',color:'#ff3d3d'},
+  walk:  {label:'הליכה',emoji:'🚶',color:'#00d97e'},
 };
-const CIRCLE_R = 105;
-const CIRCLE_C = 2 * Math.PI * CIRCLE_R; // 659.7
-
-const BANK_KEY    = 'running_bank_v1';
-const WORKOUT_KEY = 'running_workout_v1';
+const CIRCLE_C = 2 * Math.PI * 105; // 659.7
+const BANK_KEY    = 'running_bank_v2';
+const WORKOUT_KEY = 'running_workout_v2';
+const STATE_KEY   = 'running_state_v2';
 
 const DEFAULT_BANK = {
   run: [
@@ -485,7 +294,6 @@ const DEFAULT_BANK = {
     'קדימה, עוד קצת חימום ואז יש כיף!',
   ],
 };
-
 const DONE_MSGS = [
   'סיימת! ימטורף כמה שאתה טוב!',
   'כל הכבוד! אלוף אמיתי!',
@@ -493,347 +301,374 @@ const DONE_MSGS = [
   'יאללה גיבור! האימון הסתיים!',
 ];
 
-// ════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// STATE — SETUP
+// ═══════════════════════════════════════════
 let phases = [
-  { id: 1, type: 'warmup', secs: 300 },
-  { id: 2, type: 'run',    secs: 120 },
-  { id: 3, type: 'walk',   secs: 60  },
+  {id:1,type:'warmup',secs:300},
+  {id:2,type:'run',   secs:120},
+  {id:3,type:'walk',  secs:60 },
 ];
-let repeat = 1;
-let nextId = 4;
-let bank = null;
+let repeat     = 1;
+let nextId     = 4;
+let bank       = null;
 let activeBankTab = 'run';
+let targetMeters  = 0;  // 0 = no target
+let targetUnit    = 'm';
 
-// Timer state
-let expandedPhases = [];
-let phaseIdx = 0;
-let timeLeft = 0;
-let totalElapsed = 0;
-let isRunning = false;
-let isDone = false;
-let timerInterval = null;
-let lastTick = 0;
-let halfAnnounced = false;
-let lastAnnouncedAt = 0;
+// ═══════════════════════════════════════════
+// STATE — TIMER
+// ═══════════════════════════════════════════
+let expandedPhases  = [];
+let phaseIdx        = 0;
+let workoutStartWall= 0;  // Date.now() when workout started
+let phaseStartWall  = 0;  // Date.now() when current phase started
+let pausedAt        = 0;  // Date.now() when paused (0 = not paused)
+let totalPausedMs   = 0;  // total ms spent paused
+let isRunning       = false;
+let isDone          = false;
+let timerInterval   = null;
 
-// GPS state
-let totalDistance = 0;
-let lastPos = null;
-let geoWatch = null;
-let gpsStatus = 'requesting'; // requesting | active | denied
+// Per-phase announcement flags (reset on advancePhase)
+let announced30     = false;
+let announcedHalf   = false;
+let lastAnnounceWall= 0;  // wall-clock ms of last announcement
+
+// GPS
+let totalDistance   = 0;
+let lastPos         = null;
+let geoWatch        = null;
+let gpsStatus       = 'requesting';
+let targetWarned    = false;  // 100m warning fired
+let targetReached   = false;  // arrival fired
 
 // Wake lock
 let audioCtx = null;
+let silentNode = null;
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // STORAGE
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function loadBank() {
-  try {
-    const raw = localStorage.getItem(BANK_KEY);
-    bank = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_BANK));
-  } catch { bank = JSON.parse(JSON.stringify(DEFAULT_BANK)); }
+  try { bank = JSON.parse(localStorage.getItem(BANK_KEY)) || JSON.parse(JSON.stringify(DEFAULT_BANK)); }
+  catch { bank = JSON.parse(JSON.stringify(DEFAULT_BANK)); }
 }
-function saveBank() {
-  localStorage.setItem(BANK_KEY, JSON.stringify(bank));
-}
+function saveBank() { localStorage.setItem(BANK_KEY, JSON.stringify(bank)); }
+
 function loadWorkout() {
   try {
-    const raw = localStorage.getItem(WORKOUT_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (saved.phases?.length) { phases = saved.phases; nextId = Math.max(...phases.map(p=>p.id)) + 1; }
-      if (saved.repeat) repeat = saved.repeat;
-    }
+    const s = JSON.parse(localStorage.getItem(WORKOUT_KEY));
+    if (s?.phases?.length) { phases = s.phases; nextId = Math.max(...phases.map(p=>p.id))+1; }
+    if (s?.repeat) repeat = s.repeat;
+    if (s?.targetMeters) targetMeters = s.targetMeters;
+    if (s?.targetUnit)   targetUnit   = s.targetUnit;
   } catch {}
 }
 function saveWorkout() {
-  localStorage.setItem(WORKOUT_KEY, JSON.stringify({ phases, repeat }));
+  localStorage.setItem(WORKOUT_KEY, JSON.stringify({phases,repeat,targetMeters,targetUnit}));
 }
 
-// ════════════════════════════════════════════
+// Save timer state so we can restore after background kill (best-effort)
+function saveTimerState() {
+  if (!isRunning && !isDone) return;
+  localStorage.setItem(STATE_KEY, JSON.stringify({
+    expandedPhases, phaseIdx, workoutStartWall, phaseStartWall,
+    totalPausedMs, isRunning: isRunning && !isDone,
+    totalDistance, announced30, announcedHalf, lastAnnounceWall,
+    targetWarned, targetReached,
+  }));
+}
+
+// ═══════════════════════════════════════════
 // HELPERS
-// ════════════════════════════════════════════
-function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+// ═══════════════════════════════════════════
+function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 function randFrom(type) {
   const msgs = bank?.[type];
-  return msgs?.length ? rand(msgs) : rand(DEFAULT_BANK[type] || ['קדימה!']);
+  return msgs?.length ? rand(msgs) : rand(DEFAULT_BANK[type]||['קדימה!']);
 }
-
 function formatTime(s) {
-  s = Math.max(0, Math.round(s));
+  s = Math.max(0,Math.round(s));
   return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
-
 function formatDist(m) {
-  if (m < 10) return '';
-  return m < 1000 ? `${Math.round(m)} מ׳` : `${(m/1000).toFixed(2)} ק"מ`;
+  if (m < 1) return '0 מ׳';
+  if (m < 1000) return `${Math.round(m)} מ׳`;
+  return `${(m/1000).toFixed(3)} ק"מ`;
 }
-
 function formatDuration(secs) {
-  const m = Math.floor(secs / 60), s = secs % 60;
+  secs = Math.round(secs);
+  const m = Math.floor(secs/60), s = secs%60;
   if (m === 0) return `${s} שניות`;
-  if (s === 0) return `${m === 1 ? 'דקה' : m + ' דקות'}`;
+  if (s === 0) return m===1?'דקה':`${m} דקות`;
   return `${m} דקות ו-${s} שניות`;
 }
-
 function timeAwareMsg(elapsedInPhase, remainInPhase, motivational) {
   const parts = [];
   if (elapsedInPhase >= 60) parts.push(`עברו ${formatDuration(elapsedInPhase)}`);
   if (remainInPhase > 5)    parts.push(`נשאר ${formatDuration(remainInPhase)}`);
   return parts.length ? `${parts.join(', ')} — ${motivational}` : motivational;
 }
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000, r = d => d * Math.PI / 180;
-  const a = Math.sin(r(lat2-lat1)/2)**2 +
-    Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2-lon1)/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, r=d=>d*Math.PI/180;
+  const a=Math.sin(r(lat2-lat1)/2)**2+Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(r(lon2-lon1)/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function hexToRgba(hex,a) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // SPEECH
-// ════════════════════════════════════════════
-let speechQueue = [];
+// ═══════════════════════════════════════════
 let isSpeaking = false;
-
+let speechQueue = [];
 function speak(text) {
-  speechQueue = [text]; // replace queue (latest wins)
+  speechQueue = [text];
   processSpeech();
 }
-
 function processSpeech() {
   if (isSpeaking || !speechQueue.length) return;
   const text = speechQueue.shift();
   isSpeaking = true;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'he-IL';
-  utt.rate = 0.95;
-  utt.pitch = 1.0;
-  // Find Hebrew voice
+  utt.lang='he-IL'; utt.rate=0.95; utt.pitch=1.0;
   const voices = window.speechSynthesis.getVoices();
-  const heVoice = voices.find(v => v.lang.startsWith('he'));
+  const heVoice = voices.find(v=>v.lang.startsWith('he'));
   if (heVoice) utt.voice = heVoice;
-  utt.onend = utt.onerror = () => { isSpeaking = false; processSpeech(); };
+  utt.onend = utt.onerror = ()=>{ isSpeaking=false; processSpeech(); };
   window.speechSynthesis.speak(utt);
 }
+if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = ()=>{};
 
-// iOS: voices load async
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => {};
-  // iOS resumption hack
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && isRunning) window.speechSynthesis.resume();
-  });
-}
-
-// ════════════════════════════════════════════
-// WAKE LOCK (silent audio — works on iOS)
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// WAKE LOCK (silent audio — keeps iOS alive)
+// ═══════════════════════════════════════════
 function startWakeLock() {
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc  = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     gain.gain.value = 0.001;
     osc.frequency.value = 1;
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
+    silentNode = osc;
   } catch(e) {}
 }
 function stopWakeLock() {
-  try { audioCtx?.close(); audioCtx = null; } catch(e) {}
+  try { silentNode?.stop(); audioCtx?.close(); audioCtx=null; silentNode=null; } catch(e){}
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // GPS
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function startGPS() {
-  if (!navigator.geolocation) { gpsStatus = 'denied'; updateDistanceUI(); return; }
+  if (!navigator.geolocation) { gpsStatus='denied'; updateDistanceUI(); return; }
   geoWatch = navigator.geolocation.watchPosition(
     pos => {
       if (!isRunning) return;
-      const { latitude: lat, longitude: lon } = pos.coords;
+      const {latitude:lat,longitude:lon} = pos.coords;
       if (lastPos) {
-        const d = haversine(lastPos.lat, lastPos.lon, lat, lon);
-        if (d < 50) totalDistance += d;
+        const d = haversine(lastPos.lat,lastPos.lon,lat,lon);
+        if (d < 50) {
+          totalDistance += d;
+          checkTargetDistance();
+        }
       }
-      lastPos = { lat, lon };
+      lastPos = {lat,lon};
       gpsStatus = 'active';
       updateDistanceUI();
     },
-    () => { gpsStatus = 'denied'; updateDistanceUI(); },
-    { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+    ()=>{ gpsStatus='denied'; updateDistanceUI(); },
+    {enableHighAccuracy:true, maximumAge:2000, timeout:10000}
   );
 }
 function stopGPS() {
-  if (geoWatch != null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
+  if (geoWatch!=null) { navigator.geolocation.clearWatch(geoWatch); geoWatch=null; }
 }
 function updateDistanceUI() {
   const val = document.getElementById('distance-val');
   const lbl = document.getElementById('distance-lbl');
   if (!val) return;
-  if (gpsStatus === 'denied') { val.textContent = 'ללא GPS'; lbl.style.display = 'none'; return; }
-  if (gpsStatus === 'requesting') { val.textContent = '📡 מחפש GPS...'; lbl.style.display = 'none'; return; }
-  const d = formatDist(totalDistance);
-  if (!d) { val.textContent = '📍 0 מ׳'; lbl.style.display = 'none'; return; }
-  val.textContent = `📍 ${d}`;
+  if (gpsStatus==='denied')     { val.textContent='ללא GPS'; lbl.style.display='none'; return; }
+  if (gpsStatus==='requesting') { val.textContent='📡 מחפש GPS...'; lbl.style.display='none'; return; }
+  val.textContent = `📍 ${formatDist(totalDistance)}`;
   lbl.style.display = 'block';
+  // Target progress
+  updateTargetBadge();
+}
+function checkTargetDistance() {
+  if (!targetMeters || targetReached) return;
+  const remaining = targetMeters - totalDistance;
+  if (remaining <= 0 && !targetReached) {
+    targetReached = true;
+    speak('הגעת למרחק היעד! כל הכבוד אלוף!');
+  } else if (remaining <= 100 && !targetWarned) {
+    targetWarned = true;
+    speak(`עוד 100 מטר — מגיע ליעד!`);
+  }
+}
+function updateTargetBadge() {
+  const badge = document.getElementById('target-badge');
+  if (!badge || !targetMeters) { if(badge) badge.textContent=''; return; }
+  if (targetReached) { badge.textContent='✅ הגעת ליעד!'; badge.style.color='var(--walk)'; return; }
+  const remaining = Math.max(0, targetMeters - totalDistance);
+  badge.style.color = remaining <= 100 ? 'var(--walk)' : 'var(--muted)';
+  badge.textContent = `🎯 נשאר ${formatDist(remaining)} מתוך ${formatDist(targetMeters)}`;
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // PHASE COLOR
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function applyPhaseColor(type) {
-  const meta = PHASE_META[type] || PHASE_META.run;
-  const c = meta.color;
+  const c = PHASE_META[type]?.color || '#ff3d3d';
   document.documentElement.style.setProperty('--phase', c);
-  document.documentElement.style.setProperty('--phase-glow', hexToRgba(c, 0.13));
+  document.documentElement.style.setProperty('--phase-glow', hexToRgba(c,0.13));
   document.getElementById('phase-glow').style.display = 'block';
 }
-function hexToRgba(hex, a) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
 
-// ════════════════════════════════════════════
-// TIMER LOGIC
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// TIMER — TIMESTAMP BASED
+// ═══════════════════════════════════════════
 function buildExpandedPhases() {
   const first = phases[0];
-  const rest = phases.slice(1);
-  const exp = [{ ...first, eid: 'e-0-0' }];
-  for (let r = 0; r < repeat; r++) {
-    rest.forEach((ph, i) => exp.push({ ...ph, eid: `e-${r}-${i+1}` }));
-  }
+  const rest  = phases.slice(1);
+  const exp   = [{...first, eid:'e-0-0'}];
+  for (let r=0; r<repeat; r++)
+    rest.forEach((ph,i) => exp.push({...ph, eid:`e-${r}-${i+1}`}));
   return exp;
+}
+
+// How many seconds have truly elapsed in current phase (accounts for pauses)
+function elapsedInPhaseSecs() {
+  const now = pausedAt || Date.now();
+  return (now - phaseStartWall - totalPausedMs) / 1000;
+}
+// Total elapsed workout seconds
+function totalElapsedSecs() {
+  const now = pausedAt || Date.now();
+  return (now - workoutStartWall - totalPausedMs) / 1000;
 }
 
 function startWorkout() {
   saveWorkout();
-  expandedPhases = buildExpandedPhases();
-  phaseIdx = 0;
-  totalElapsed = 0;
-  totalDistance = 0;
-  lastPos = null;
-  isDone = false;
-  gpsStatus = 'requesting';
+  expandedPhases   = buildExpandedPhases();
+  phaseIdx         = 0;
+  totalDistance    = 0;
+  lastPos          = null;
+  isDone           = false;
+  gpsStatus        = 'requesting';
+  targetWarned     = false;
+  targetReached    = false;
 
-  const first = expandedPhases[0];
-  timeLeft = first.secs;
-  halfAnnounced = false;
-  lastAnnouncedAt = 0;
+  const now = Date.now();
+  workoutStartWall = now;
+  phaseStartWall   = now;
+  totalPausedMs    = 0;
+  pausedAt         = 0;
+  announced30      = false;
+  announcedHalf    = false;
+  lastAnnounceWall = now;
+  isRunning        = true;
 
   startWakeLock();
   startGPS();
   goTimer();
   buildTimerDots();
   updateTimerUI();
-  applyPhaseColor(first.type);
+  applyPhaseColor(expandedPhases[0].type);
 
-  // Start ticking after short delay (let screen render)
-  isRunning = true;
-  lastTick = Date.now();
-  timerInterval = setInterval(tick, 500);
-
-  const meta = PHASE_META[first.type];
-  speak(`מתחילים ${meta.label}. קדימה!`);
+  timerInterval = setInterval(tick, 250);
+  speak(`מתחילים ${PHASE_META[expandedPhases[0].type].label}. קדימה!`);
 }
 
 function tick() {
-  if (!isRunning) return;
-  const now = Date.now();
-  const elapsed = (now - lastTick) / 1000;
-  lastTick = now;
+  if (!isRunning || pausedAt) return;
 
-  if (elapsed < 0.3 || elapsed > 3) return; // sanity check
+  const ph = expandedPhases[phaseIdx];
+  const elapsedPhase = elapsedInPhaseSecs();
+  const tl = Math.max(0, ph.secs - elapsedPhase);
 
-  totalElapsed += elapsed;
-  timeLeft -= elapsed;
+  // ── Countdown 3-2-1 ──
+  if (tl <= 3.5 && tl > 3.0 && ph.secs > 5) speak('שלוש');
+  else if (tl <= 2.5 && tl > 2.0 && ph.secs > 5) speak('שתיים');
+  else if (tl <= 1.5 && tl > 1.0 && ph.secs > 5) speak('אחת');
 
-  // Countdown 3-2-1
-  const tl = Math.ceil(timeLeft);
-  if (tl === 3 && Math.ceil(timeLeft + elapsed) === 4) speak('שלוש');
-  else if (tl === 2 && Math.ceil(timeLeft + elapsed) === 3) speak('שתיים');
-  else if (tl === 1 && Math.ceil(timeLeft + elapsed) === 2) speak('אחת');
-
-  const curPhase = expandedPhases[phaseIdx];
-  const elapsedInPhase = curPhase.secs - timeLeft;
-  const sinceAnnounce = totalElapsed - lastAnnouncedAt;
-
-  // 30s warning
-  if (tl === 30 && Math.ceil(timeLeft + elapsed) > 30) {
-    const msg = timeAwareMsg(Math.round(elapsedInPhase), 30, randFrom(curPhase.type));
-    speak(msg); lastAnnouncedAt = totalElapsed;
-  }
-  // Halfway (phases ≥ 2 min)
-  else if (!halfAnnounced && curPhase.secs >= 120) {
-    const half = curPhase.secs / 2;
-    if (elapsedInPhase >= half && elapsedInPhase - elapsed < half) {
-      halfAnnounced = true;
-      const msg = timeAwareMsg(Math.round(elapsedInPhase), Math.round(timeLeft), randFrom(curPhase.type));
-      speak(msg); lastAnnouncedAt = totalElapsed;
-    }
-  }
-  // 3-minute silence rule
-  else if (sinceAnnounce >= 180 && timeLeft > 10) {
-    const msg = timeAwareMsg(Math.round(elapsedInPhase), Math.round(timeLeft), randFrom(curPhase.type));
-    speak(msg); lastAnnouncedAt = totalElapsed;
+  // ── 30s warning ──
+  if (!announced30 && tl <= 30 && tl > 29 && ph.secs > 40) {
+    announced30 = true;
+    lastAnnounceWall = Date.now();
+    speak(timeAwareMsg(Math.round(elapsedPhase), 30, randFrom(ph.type)));
   }
 
-  // Phase done?
-  if (timeLeft <= 0) {
-    advancePhase();
-    return;
+  // ── Halfway (phases ≥ 2 min) ──
+  if (!announcedHalf && ph.secs >= 120 && elapsedPhase >= ph.secs/2 && tl > 35) {
+    announcedHalf = true;
+    lastAnnounceWall = Date.now();
+    speak(timeAwareMsg(Math.round(elapsedPhase), Math.round(tl), randFrom(ph.type)));
   }
+
+  // ── 3-minute silence rule ──
+  const silenceSecs = (Date.now() - lastAnnounceWall) / 1000;
+  if (silenceSecs >= 180 && tl > 15 && !isDone) {
+    lastAnnounceWall = Date.now();
+    speak(timeAwareMsg(Math.round(elapsedPhase), Math.round(tl), randFrom(ph.type)));
+  }
+
+  // ── Phase done? ──
+  if (tl <= 0) { advancePhase(); return; }
 
   updateTimerUI();
+  saveTimerState();
 }
 
 function advancePhase() {
-  // Vibrate if supported
   try { navigator.vibrate?.(400); } catch {}
-
   const next = phaseIdx + 1;
   if (next >= expandedPhases.length) {
     // DONE
-    isDone = true;
-    isRunning = false;
+    isDone = true; isRunning = false;
     clearInterval(timerInterval);
-    stopGPS();
-    stopWakeLock();
+    stopGPS(); stopWakeLock();
     speak(rand(DONE_MSGS));
     try { navigator.vibrate?.([400,200,400,200,600]); } catch {}
     showDoneUI();
+    localStorage.removeItem(STATE_KEY);
   } else {
-    phaseIdx = next;
-    halfAnnounced = false;
-    lastAnnouncedAt = totalElapsed;
+    phaseIdx      = next;
+    announced30   = false;
+    announcedHalf = false;
+    phaseStartWall= Date.now();
+    totalPausedMs = 0;
+    lastAnnounceWall = Date.now();
     const ph = expandedPhases[next];
-    timeLeft = ph.secs;
     applyPhaseColor(ph.type);
-    const meta = PHASE_META[ph.type];
-    speak(`${meta.label}! ${ph.type === 'run' ? 'קדימה!' : 'נשמו.'}`);
+    speak(`${PHASE_META[ph.type].label}! ${ph.type==='run'?'קדימה!':'נשמו.'}`);
     updateTimerUI();
   }
 }
 
 function togglePause() {
   if (isDone) return;
-  isRunning = !isRunning;
   if (isRunning) {
-    lastTick = Date.now();
-    lastAnnouncedAt = totalElapsed;
-    speak('ממשיכים!');
-  } else {
-    lastPos = null; // pause GPS accumulation
+    // Pause
+    pausedAt  = Date.now();
+    isRunning = false;
+    document.getElementById('pause-btn').textContent = '▶ המשך';
     speak('הפסקה');
+  } else {
+    // Resume
+    totalPausedMs += Date.now() - pausedAt;
+    pausedAt  = 0;
+    isRunning = true;
+    lastAnnounceWall = Date.now();
+    document.getElementById('pause-btn').textContent = '⏸ עצור';
+    speak('ממשיכים!');
   }
-  document.getElementById('pause-btn').textContent = isRunning ? '⏸ עצור' : '▶ המשך';
 }
 
 function confirmExit() {
@@ -841,117 +676,116 @@ function confirmExit() {
 }
 function exitTimer() {
   clearInterval(timerInterval);
-  stopGPS();
-  stopWakeLock();
-  isRunning = false;
-  isDone = false;
+  stopGPS(); stopWakeLock();
+  isRunning = false; isDone = false;
   window.speechSynthesis?.cancel();
-  document.getElementById('phase-glow').style.display = 'none';
+  document.getElementById('phase-glow').style.display='none';
+  document.getElementById('bg-warning').style.display='none';
+  localStorage.removeItem(STATE_KEY);
   goSetup();
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // TIMER UI
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function buildTimerDots() {
   const row = document.getElementById('dots-row');
   row.innerHTML = '';
-  expandedPhases.forEach((ph, i) => {
+  expandedPhases.forEach((_,i)=>{
     const d = document.createElement('div');
-    d.className = 'dot';
-    d.id = `dot-${i}`;
+    d.className='dot'; d.id=`dot-${i}`;
     row.appendChild(d);
   });
 }
-
 function updateTimerUI() {
   if (isDone) return;
-  const ph = expandedPhases[phaseIdx];
+  const ph   = expandedPhases[phaseIdx];
   const meta = PHASE_META[ph.type];
-  const tl = Math.max(0, timeLeft);
+  const tl   = Math.max(0, ph.secs - elapsedInPhaseSecs());
+  const te   = totalElapsedSecs();
 
-  // Labels
   document.getElementById('timer-phase-label').textContent = `${meta.label} ${meta.emoji}`;
-  document.getElementById('timer-countdown').textContent = formatTime(tl);
-  document.getElementById('timer-countdown').className = 'timer-countdown';
-  document.getElementById('timer-elapsed').textContent = `⏱ ${formatTime(totalElapsed)}`;
-  document.getElementById('timer-step').textContent =
-    `שלב ${phaseIdx + 1} מתוך ${expandedPhases.length}`;
+  document.getElementById('timer-phase-label').style.color  = meta.color;
+  document.getElementById('timer-countdown').textContent    = formatTime(tl);
+  document.getElementById('timer-countdown').style.color    = meta.color;
+  document.getElementById('timer-elapsed').textContent      = `⏱ ${formatTime(te)}`;
+  document.getElementById('timer-step').textContent         =
+    `שלב ${phaseIdx+1} מתוך ${expandedPhases.length}`;
 
-  // Circle progress
-  const progress = tl / ph.secs;
+  // Ring
   const ring = document.getElementById('timer-ring');
-  ring.style.strokeDashoffset = CIRCLE_C * (1 - progress);
+  ring.style.strokeDashoffset = CIRCLE_C*(1-tl/ph.secs);
   ring.style.stroke = meta.color;
 
   // Dots
-  expandedPhases.forEach((p, i) => {
+  expandedPhases.forEach((_,i)=>{
     const d = document.getElementById(`dot-${i}`);
     if (!d) return;
-    if (i < phaseIdx) {
-      d.style.background = '#00d97e';
-      d.classList.remove('active');
-    } else if (i === phaseIdx) {
-      d.style.background = meta.color;
-      d.classList.add('active');
-    } else {
-      d.style.background = 'var(--border)';
-      d.classList.remove('active');
-    }
+    d.classList.toggle('active', i===phaseIdx);
+    d.style.background = i<phaseIdx ? '#00d97e' : i===phaseIdx ? meta.color : 'var(--border)';
   });
-
-  // Distance
-  updateDistanceUI();
 }
-
 function showDoneUI() {
-  const ph = document.getElementById('timer-phase-label');
-  ph.textContent = 'כל הכבוד! 🎉';
-  ph.style.color = 'var(--done)';
-  document.getElementById('timer-countdown').textContent = '🎉';
-  document.getElementById('timer-countdown').className = 'timer-countdown done-emoji';
-  document.getElementById('timer-ring').style.stroke = 'var(--done)';
+  document.getElementById('timer-phase-label').textContent = 'כל הכבוד! 🎉';
+  document.getElementById('timer-phase-label').style.color = 'var(--done)';
+  document.getElementById('timer-countdown').textContent   = '🎉';
+  document.getElementById('timer-countdown').style.color   = 'var(--done)';
+  document.getElementById('timer-ring').style.stroke       = 'var(--done)';
   document.getElementById('timer-ring').style.strokeDashoffset = 0;
-  document.documentElement.style.setProperty('--phase', 'var(--done)');
-
+  document.documentElement.style.setProperty('--phase','var(--done)');
   const dist = formatDist(totalDistance);
-  document.getElementById('done-stats').style.display = 'block';
-  document.getElementById('done-stats').innerHTML =
-    `זמן כולל: ${formatTime(totalElapsed)}<br>` +
-    `${expandedPhases.length} שלבים${dist ? '<br>מרחק: ' + dist : ''}`;
-
-  document.getElementById('pause-btn').textContent = 'אימון חדש';
-  document.getElementById('pause-btn').onclick = exitTimer;
-  document.getElementById('pause-btn').style.borderColor = 'var(--done)';
-  document.getElementById('pause-btn').style.color = 'var(--done)';
+  const stats = document.getElementById('done-stats');
+  stats.style.display='block';
+  stats.innerHTML = `זמן כולל: ${formatTime(totalElapsedSecs())}<br>` +
+    `${expandedPhases.length} שלבים${dist&&gpsStatus==='active'?'<br>מרחק: '+dist:''}`;
+  const btn = document.getElementById('pause-btn');
+  btn.textContent='אימון חדש'; btn.onclick=exitTimer;
+  btn.style.borderColor='var(--done)'; btn.style.color='var(--done)';
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// BACKGROUND HANDLING
+// ═══════════════════════════════════════════
+document.addEventListener('visibilitychange', ()=>{
+  if (!document.hidden) {
+    // Page came back to foreground
+    document.getElementById('bg-warning').style.display='none';
+    if (isRunning) {
+      window.speechSynthesis?.resume();
+      updateTimerUI(); // catch up UI immediately
+    }
+  } else {
+    // Went to background
+    if (isRunning) {
+      document.getElementById('bg-warning').style.display='block';
+      window.speechSynthesis?.resume(); // keep speech going
+    }
+  }
+});
+
+// ═══════════════════════════════════════════
 // SETUP UI
-// ════════════════════════════════════════════
-function renderSetup() {
-  renderPhaseList();
-  renderRepeat();
-  renderSummary();
-}
+// ═══════════════════════════════════════════
+function renderSetup() { renderPhaseList(); renderRepeat(); renderSummary(); }
 
 function renderPhaseList() {
   const list = document.getElementById('phase-list');
-  list.innerHTML = '';
-  phases.forEach((ph, i) => {
+  list.innerHTML='';
+  phases.forEach((ph,i)=>{
     const meta = PHASE_META[ph.type];
-    const row = document.createElement('div');
-    row.className = 'phase-row';
+    const row  = document.createElement('div');
+    row.className='phase-row';
     row.style.setProperty('--phase-row-color', meta.color);
-    row.innerHTML = `
-      <button class="phase-type-btn" onclick="cyclePhaseType(${i})" style="--phase-row-color:${meta.color};border-color:${meta.color};color:${meta.color}">
+    row.innerHTML=`
+      <button class="phase-type-btn" onclick="cyclePhaseType(${i})"
+        style="border-color:${meta.color};color:${meta.color}">
         <span>${meta.emoji}</span><span>${meta.label}</span>
       </button>
       <div class="phase-min-wrap">
         <input class="phase-min-input" type="number" min="1" max="180"
           value="${Math.floor(ph.secs/60)}"
-          onchange="updatePhaseSecs(${i}, this.value)"
-          oninput="updatePhaseSecs(${i}, this.value)">
+          onchange="updatePhaseSecs(${i},this.value)"
+          oninput="updatePhaseSecs(${i},this.value)">
         <span class="phase-min-label">דק׳</span>
       </div>
       <div class="phase-move-btns">
@@ -963,202 +797,167 @@ function renderPhaseList() {
     list.appendChild(row);
   });
 }
-
 function renderAddRow() {
   const row = document.getElementById('add-row');
-  row.innerHTML = '';
-  PHASE_TYPES.forEach(type => {
-    const meta = PHASE_META[type];
-    const btn = document.createElement('button');
-    btn.className = 'add-btn';
-    btn.style.borderColor = meta.color;
-    btn.style.color = meta.color;
-    btn.textContent = `+ ${meta.label}`;
-    btn.onclick = () => addPhase(type);
+  row.innerHTML='';
+  PHASE_TYPES.forEach(type=>{
+    const meta=PHASE_META[type];
+    const btn=document.createElement('button');
+    btn.className='add-btn'; btn.style.borderColor=meta.color; btn.style.color=meta.color;
+    btn.textContent=`+ ${meta.label}`; btn.onclick=()=>addPhase(type);
     row.appendChild(btn);
   });
 }
-
 function renderRepeat() {
-  const card = document.getElementById('repeat-card');
-  card.style.display = phases.length > 1 ? 'block' : 'none';
+  document.getElementById('repeat-card').style.display = phases.length>1?'block':'none';
   document.getElementById('repeat-display').textContent = repeat;
-  document.getElementById('repeat-label').textContent = repeat === 1 ? 'סבב אחד' : `${repeat} סבבים`;
+  document.getElementById('repeat-label').textContent   = repeat===1?'סבב אחד':`${repeat} סבבים`;
 }
-
 function renderSummary() {
   const box = document.getElementById('summary-box');
-  const restSecs = phases.slice(1).reduce((s,p) => s + p.secs, 0);
-  const totalSecs = phases[0].secs + restSecs * repeat;
-  const totalMin = Math.round(totalSecs / 60);
-  if (totalMin <= 0) { box.style.display = 'none'; return; }
-  box.style.display = 'block';
+  const restSecs = phases.slice(1).reduce((s,p)=>s+p.secs,0);
+  const totalMin = Math.round((phases[0].secs + restSecs*repeat)/60);
+  if (totalMin<=0) { box.style.display='none'; return; }
+  box.style.display='block';
   document.getElementById('summary-main').textContent = `סה"כ ~${totalMin} דקות`;
-  document.getElementById('summary-sub').textContent =
+  document.getElementById('summary-sub').textContent  =
     `חימום + ${repeat} × (${phases.slice(1).map(p=>p.secs/60+' דק׳').join(' + ')})`;
 }
 
-// Phase mutations
 function cyclePhaseType(i) {
-  const idx = PHASE_TYPES.indexOf(phases[i].type);
-  phases[i] = { ...phases[i], type: PHASE_TYPES[(idx+1) % PHASE_TYPES.length] };
+  const idx=PHASE_TYPES.indexOf(phases[i].type);
+  phases[i]={...phases[i],type:PHASE_TYPES[(idx+1)%PHASE_TYPES.length]};
   renderSetup();
 }
-function updatePhaseSecs(i, v) {
-  const mins = Math.max(1, parseInt(v) || 1);
-  phases[i] = { ...phases[i], secs: mins * 60 };
-  renderSummary();
+function updatePhaseSecs(i,v) {
+  phases[i]={...phases[i],secs:Math.max(1,parseInt(v)||1)*60}; renderSummary();
 }
-function addPhase(type) {
-  phases.push({ id: nextId++, type, secs: 60 });
-  renderSetup();
+function addPhase(type)    { phases.push({id:nextId++,type,secs:60}); renderSetup(); }
+function removePhase(i)    { if(phases.length<=1)return; phases.splice(i,1); renderSetup(); }
+function movePhase(i,dir)  {
+  const j=i+dir; if(j<0||j>=phases.length)return;
+  [phases[i],phases[j]]=[phases[j],phases[i]]; renderSetup();
 }
-function removePhase(i) {
-  if (phases.length <= 1) return;
-  phases.splice(i, 1);
-  renderSetup();
+function changeRepeat(d)   { repeat=Math.max(1,Math.min(20,repeat+d)); renderRepeat(); renderSummary(); }
+
+// Target distance
+function setTargetUnit(unit) {
+  targetUnit = unit;
+  document.getElementById('target-unit-m').className  = 'target-unit-btn'+(unit==='m' ?' active':'');
+  document.getElementById('target-unit-km').className = 'target-unit-btn'+(unit==='km'?' active':'');
+  updateTargetLabel();
 }
-function movePhase(i, dir) {
-  const j = i + dir;
-  if (j < 0 || j >= phases.length) return;
-  [phases[i], phases[j]] = [phases[j], phases[i]];
-  renderSetup();
+function updateTargetLabel() {
+  const val = parseFloat(document.getElementById('target-input').value) || 0;
+  targetMeters = targetUnit==='km' ? val*1000 : val;
+  const lbl = document.getElementById('target-label');
+  lbl.textContent = targetMeters>0 ? `יעד: ${formatDist(targetMeters)}` : '';
 }
-function changeRepeat(delta) {
-  repeat = Math.max(1, Math.min(20, repeat + delta));
-  renderRepeat();
-  renderSummary();
+function clearTarget() {
+  document.getElementById('target-input').value='';
+  targetMeters=0;
+  document.getElementById('target-label').textContent='';
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // BANK UI
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function renderBank() {
-  // Tabs
   const tabsEl = document.getElementById('bank-tabs');
-  tabsEl.innerHTML = '';
-  PHASE_TYPES.forEach(type => {
-    const meta = PHASE_META[type];
-    const tab = document.createElement('button');
-    tab.className = 'bank-tab' + (type === activeBankTab ? ' active' : '');
-    tab.textContent = `${meta.emoji} ${meta.label}`;
+  tabsEl.innerHTML='';
+  PHASE_TYPES.forEach(type=>{
+    const meta=PHASE_META[type];
+    const tab=document.createElement('button');
+    tab.className='bank-tab'+(type===activeBankTab?' active':'');
+    tab.textContent=`${meta.emoji} ${meta.label}`;
     tab.style.setProperty('--phase', meta.color);
-    tab.onclick = () => { activeBankTab = type; renderBank(); };
+    tab.onclick=()=>{ activeBankTab=type; renderBank(); };
     tabsEl.appendChild(tab);
   });
-
-  // Hint
   const meta = PHASE_META[activeBankTab];
   document.getElementById('bank-hint').textContent =
     `הודעות אלו יושמעו תוך כדי ${meta.label}, עם מידע על זמן שעבר ונשאר.`;
-
-  // Messages
-  const msgs = bank[activeBankTab] || [];
-  const msgsEl = document.getElementById('bank-msgs');
-  msgsEl.innerHTML = '';
-  if (!msgs.length) {
-    msgsEl.innerHTML = '<p style="text-align:center;color:var(--muted);margin-top:20px;font-size:14px">אין הודעות עדיין</p>';
-  }
-  msgs.forEach((msg, i) => {
-    const row = document.createElement('div');
-    row.className = 'msg-row';
-    row.innerHTML = `
-      <span class="msg-text">${msg}</span>
-      <button class="msg-del" onclick="deleteBankMsg(${i})">✕</button>
-    `;
+  const msgs=bank[activeBankTab]||[];
+  const msgsEl=document.getElementById('bank-msgs');
+  msgsEl.innerHTML='';
+  if (!msgs.length)
+    msgsEl.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:20px;font-size:14px">אין הודעות עדיין</p>';
+  msgs.forEach((msg,i)=>{
+    const row=document.createElement('div'); row.className='msg-row';
+    row.innerHTML=`<span class="msg-text">${msg}</span><button class="msg-del" onclick="deleteBankMsg(${i})">✕</button>`;
     msgsEl.appendChild(row);
   });
+  document.getElementById('bank-add-btn').style.background = meta.color;
 }
-
 function addBankMsg() {
-  const input = document.getElementById('bank-input');
-  const text = input.value.trim();
-  if (!text) return;
-  if (!bank[activeBankTab]) bank[activeBankTab] = [];
-  bank[activeBankTab].push(text);
-  saveBank();
-  input.value = '';
-  document.getElementById('bank-add-btn').disabled = true;
+  const input=document.getElementById('bank-input');
+  const text=input.value.trim(); if(!text)return;
+  if (!bank[activeBankTab]) bank[activeBankTab]=[];
+  bank[activeBankTab].push(text); saveBank();
+  input.value=''; document.getElementById('bank-add-btn').disabled=true;
   renderBank();
 }
-
-function deleteBankMsg(i) {
-  bank[activeBankTab].splice(i, 1);
-  saveBank();
-  renderBank();
-}
-
+function deleteBankMsg(i) { bank[activeBankTab].splice(i,1); saveBank(); renderBank(); }
 function resetBank() {
   if (confirm('לאפס את כל ההודעות לברירת המחדל?')) {
-    bank = JSON.parse(JSON.stringify(DEFAULT_BANK));
-    saveBank();
-    renderBank();
+    bank=JSON.parse(JSON.stringify(DEFAULT_BANK)); saveBank(); renderBank();
   }
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // NAVIGATION
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 function goSetup() { showScreen('screen-setup'); renderSetup(); }
 function goTimer() { showScreen('screen-timer'); }
 function goBank()  { showScreen('screen-bank');  renderBank(); }
 
-// ════════════════════════════════════════════
-// PWA MANIFEST (inject dynamically)
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// PWA MANIFEST
+// ═══════════════════════════════════════════
 function injectManifest() {
-  const manifest = {
-    name: 'ריצה חכמה',
-    short_name: 'ריצה',
-    start_url: '.',
-    display: 'standalone',
-    background_color: '#080810',
-    theme_color: '#080810',
-    orientation: 'portrait',
-    icons: [{
-      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",
-      sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable'
-    }]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('link');
-  link.rel = 'manifest'; link.href = url;
+  const m={name:'ריצה חכמה',short_name:'ריצה',start_url:'.',display:'standalone',
+    background_color:'#080810',theme_color:'#080810',orientation:'portrait',
+    icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",
+      sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
+  const link=document.createElement('link'); link.rel='manifest'; link.href=url;
   document.head.appendChild(link);
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // INSTALL HINT
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 function showInstallHint() {
-  const hint = document.getElementById('install-hint');
-  const isStandalone = window.navigator.standalone === true ||
+  const isStandalone = window.navigator.standalone===true||
     window.matchMedia('(display-mode: standalone)').matches;
-  if (!isStandalone) {
-    hint.textContent = '💡 לשמירה על מסך הבית: לחץ שתף ← "הוסף למסך הבית"';
-  }
+  if (!isStandalone)
+    document.getElementById('install-hint').textContent=
+      '💡 לשמירה על מסך הבית: לחץ שתף ← "הוסף למסך הבית"';
 }
 
-// ════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════
-document.getElementById('bank-input').addEventListener('input', function() {
-  document.getElementById('bank-add-btn').disabled = !this.value.trim();
+// ═══════════════════════════════════════════
+document.getElementById('bank-input').addEventListener('input',function(){
+  document.getElementById('bank-add-btn').disabled=!this.value.trim();
 });
-document.getElementById('bank-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') addBankMsg();
+document.getElementById('bank-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter')addBankMsg();
 });
 
-loadBank();
-loadWorkout();
-injectManifest();
-renderSetup();
-renderAddRow();
-showInstallHint();
+loadBank(); loadWorkout(); injectManifest();
+renderSetup(); renderAddRow(); showInstallHint();
+
+// Restore target input UI
+if (targetMeters>0) {
+  document.getElementById('target-input').value = targetUnit==='km'?targetMeters/1000:targetMeters;
+  setTargetUnit(targetUnit);
+  updateTargetLabel();
+}
 </script>
 </body>
 </html>
