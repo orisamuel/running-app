@@ -162,7 +162,10 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
 <div class="screen active safe-top safe-bottom" id="screen-setup">
   <div class="top-bar" style="padding-bottom:4px">
     <h1>ריצה חכמה 🏃</h1>
-    <button class="btn-ghost" onclick="goBank()">💬 הודעות</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" onclick="location.reload()" title="רענן">🔄</button>
+      <button class="btn-ghost" onclick="goBank()">💬 הודעות</button>
+    </div>
   </div>
   <p style="color:var(--muted);font-size:14px;padding:0 20px 16px">בנה את האימון שלך</p>
   <div class="screen-scroll">
@@ -633,7 +636,7 @@ function advancePhase() {
     // DONE
     isDone = true; isRunning = false;
     clearInterval(timerInterval);
-    stopGPS(); stopWakeLock();
+    stopWakeLock(); // GPS keeps running until user exits
     speak(rand(DONE_MSGS));
     try { navigator.vibrate?.([400,200,400,200,600]); } catch {}
     showDoneUI();
@@ -676,6 +679,7 @@ function confirmExit() {
 }
 function exitTimer() {
   clearInterval(timerInterval);
+  clearInterval(doneStatsInterval);
   stopGPS(); stopWakeLock();
   isRunning = false; isDone = false;
   window.speechSynthesis?.cancel();
@@ -733,14 +737,21 @@ function showDoneUI() {
   document.getElementById('timer-ring').style.stroke       = 'var(--done)';
   document.getElementById('timer-ring').style.strokeDashoffset = 0;
   document.documentElement.style.setProperty('--phase','var(--done)');
-  const dist = formatDist(totalDistance);
+  const btn = document.getElementById('pause-btn');
+  btn.textContent='סיים אימון'; btn.onclick=exitTimer;
+  btn.style.borderColor='var(--done)'; btn.style.color='var(--done)';
+  // Start live done-stats updater
+  updateDoneStats();
+  doneStatsInterval = setInterval(updateDoneStats, 1000);
+}
+
+let doneStatsInterval = null;
+function updateDoneStats() {
   const stats = document.getElementById('done-stats');
   stats.style.display='block';
-  stats.innerHTML = `זמן כולל: ${formatTime(totalElapsedSecs())}<br>` +
-    `${expandedPhases.length} שלבים${dist&&gpsStatus==='active'?'<br>מרחק: '+dist:''}`;
-  const btn = document.getElementById('pause-btn');
-  btn.textContent='אימון חדש'; btn.onclick=exitTimer;
-  btn.style.borderColor='var(--done)'; btn.style.color='var(--done)';
+  const dist = formatDist(totalDistance);
+  const gpsLine = gpsStatus==='active' ? `<br>📍 מרחק: ${dist} <span style="font-size:11px;color:var(--walk)">(ממשיך לספור)</span>` : '';
+  stats.innerHTML = `זמן כולל: ${formatTime(totalElapsedSecs())}<br>${expandedPhases.length} שלבים${gpsLine}`;
 }
 
 // ═══════════════════════════════════════════
