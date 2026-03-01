@@ -9,12 +9,13 @@
 <meta name="theme-color" content="#080810">
 <title>ריצה חכמה 🏃</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root {
-  --warmup:#f59e0b; --run:#ff3d3d; --walk:#00d97e; --done:#818cf8;
-  --bg:#080810; --card:#0f0f1a; --input:#161625;
-  --text:#eef2ff; --muted:#4a5270; --border:#1a1a2e;
-  --phase:var(--run); --phase-glow:rgba(255,61,61,0.12);
+:root{
+  --warmup:#f59e0b;--run:#ff3d3d;--walk:#00d97e;--done:#818cf8;
+  --bg:#080810;--card:#0f0f1a;--input:#161625;
+  --text:#eef2ff;--muted:#4a5270;--border:#1a1a2e;
+  --phase:var(--run);--phase-glow:rgba(255,61,61,0.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
@@ -27,22 +28,18 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);direc
 #phase-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse 60% 50% at 50% 50%,var(--phase-glow) 0%,transparent 70%);
   transition:background 1.5s ease;display:none}
-h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
+h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px}
 .card-title{font-size:16px;font-weight:800;margin-bottom:4px}
 .card-hint{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
 .btn-primary{width:100%;padding:18px;background:var(--run);border:none;border-radius:16px;
-  color:#fff;font-family:'Heebo',sans-serif;font-size:19px;font-weight:800;cursor:pointer;
-  transition:transform .1s,opacity .1s}
+  color:#fff;font-family:'Heebo',sans-serif;font-size:19px;font-weight:800;cursor:pointer;transition:transform .1s,opacity .1s}
 .btn-primary:active{transform:scale(.97);opacity:.9}
 .btn-ghost{background:none;border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;
   color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;flex-shrink:0}
-
-/* Phase rows */
-.phase-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;
-  background:var(--input);border-radius:12px;padding:10px 12px;
-  border-right:3px solid var(--phase-row-color,var(--run))}
+.phase-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--input);
+  border-radius:12px;padding:10px 12px;border-right:3px solid var(--phase-row-color,var(--run))}
 .phase-type-btn{display:flex;align-items:center;gap:5px;border:1.5px solid;border-radius:8px;
   padding:5px 9px;background:none;cursor:pointer;font-family:'Heebo',sans-serif;
   font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
@@ -52,55 +49,38 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
   font-size:20px;font-weight:800;padding:5px 0;outline:none}
 .phase-min-label{color:var(--muted);font-size:13px}
 .phase-move-btns{display:flex;flex-direction:column;gap:2px}
-.phase-move-btn{background:none;border:none;cursor:pointer;color:var(--muted);
-  font-size:13px;font-weight:700;padding:2px 4px;line-height:1}
+.phase-move-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;font-weight:700;padding:2px 4px;line-height:1}
 .phase-move-btn:disabled{opacity:.2}
 .phase-del-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px}
 .add-row{display:flex;gap:8px;margin-bottom:14px;flex-direction:row-reverse}
-.add-btn{flex:1;border-radius:10px;padding:10px 0;border:1.5px solid;background:none;cursor:pointer;
-  font-family:'Heebo',sans-serif;font-size:12px;font-weight:700}
+.add-btn{flex:1;border-radius:10px;padding:10px 0;border:1.5px solid;background:none;cursor:pointer;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700}
 .repeat-row{display:flex;align-items:center;gap:14px;flex-direction:row-reverse}
-.repeat-btn{width:44px;height:44px;border-radius:10px;background:var(--bg);
-  border:1.5px solid var(--border);font-size:24px;font-weight:300;cursor:pointer;
-  color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.repeat-btn{width:44px;height:44px;border-radius:10px;background:var(--bg);border:1.5px solid var(--border);font-size:24px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .repeat-count{font-size:36px;font-weight:900;min-width:50px;text-align:center}
 .repeat-label{color:var(--muted);font-size:14px;flex:1;text-align:left}
-.summary-box{background:var(--card);border:1.5px solid var(--done);border-radius:14px;
-  padding:14px;margin-bottom:20px;text-align:center}
-.summary-main{font-size:20px;font-weight:800}
-.summary-sub{font-size:12px;color:var(--muted);margin-top:3px}
-
-/* Target distance input */
+.setup-summary{background:linear-gradient(135deg,rgba(129,140,248,.12),rgba(129,140,248,.04));border:1.5px solid rgba(129,140,248,.25);border-radius:14px;padding:14px;margin-bottom:20px;text-align:center}
+.setup-summary-main{font-size:20px;font-weight:800}
+.setup-summary-sub{font-size:12px;color:var(--muted);margin-top:3px}
 .target-row{display:flex;align-items:center;gap:10px;flex-direction:row-reverse}
-.target-input{width:80px;text-align:center;background:var(--bg);color:var(--text);
-  border:1px solid var(--border);border-radius:8px;font-family:'Heebo',sans-serif;
-  font-size:20px;font-weight:800;padding:8px 0;outline:none}
-.target-unit-btn{background:var(--input);border:1.5px solid var(--border);border-radius:8px;
-  padding:8px 12px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;
-  font-weight:700;cursor:pointer}
+.target-input{width:80px;text-align:center;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;font-family:'Heebo',sans-serif;font-size:20px;font-weight:800;padding:8px 0;outline:none}
+.target-unit-btn{background:var(--input);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
 .target-unit-btn.active{border-color:var(--walk);color:var(--walk)}
 .target-clear{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px}
+.install-hint{font-size:12px;color:var(--muted);text-align:center;padding:10px 20px 0;line-height:1.5}
 
-/* Timer */
+/* ── TIMER ── */
 #screen-timer{align-items:center;justify-content:center;padding:0 24px}
-.timer-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
-  align-items:center;padding:16px 20px;padding-top:max(16px,env(safe-area-inset-top))}
-.timer-exit{background:none;border:none;cursor:pointer;color:var(--muted);
-  font-family:'Heebo',sans-serif;font-size:15px;padding:6px}
+.timer-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;padding-top:max(16px,env(safe-area-inset-top))}
+.timer-exit{background:none;border:none;cursor:pointer;color:var(--muted);font-family:'Heebo',sans-serif;font-size:15px;padding:6px}
 .timer-elapsed{color:var(--muted);font-size:15px;font-weight:600}
 .timer-step{color:var(--muted);font-size:15px;font-weight:600;margin-bottom:10px}
-.timer-phase-label{font-size:26px;font-weight:800;margin-bottom:24px;text-align:center;
-  transition:color .8s;color:var(--phase)}
+.timer-phase-label{font-size:26px;font-weight:800;margin-bottom:24px;text-align:center;transition:color .8s;color:var(--phase)}
 .timer-circle-wrap{position:relative;width:260px;height:260px;margin-bottom:18px;flex-shrink:0}
 .timer-svg{width:260px;height:260px;transform:rotate(-90deg)}
 .timer-track{fill:none;stroke:var(--border);stroke-width:7}
-.timer-ring{fill:none;stroke-width:7;stroke-linecap:round;stroke:var(--phase);
-  stroke-dasharray:659.7;stroke-dashoffset:0;
-  transition:stroke-dashoffset .6s linear,stroke .8s ease}
-.timer-text-wrap{position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center}
-.timer-countdown{font-size:58px;font-weight:900;letter-spacing:-2px;
-  font-variant-numeric:tabular-nums;color:var(--phase);transition:color .8s;line-height:1}
+.timer-ring{fill:none;stroke-width:7;stroke-linecap:round;stroke:var(--phase);stroke-dasharray:659.7;stroke-dashoffset:0;transition:stroke-dashoffset .6s linear,stroke .8s ease}
+.timer-text-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.timer-countdown{font-size:58px;font-weight:900;letter-spacing:-2px;font-variant-numeric:tabular-nums;color:var(--phase);transition:color .8s;line-height:1}
 .distance-badge{text-align:center;margin-bottom:6px}
 .distance-val{font-size:19px;font-weight:700}
 .distance-lbl{font-size:11px;color:var(--muted);margin-top:2px}
@@ -108,62 +88,97 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
 .dots-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:24px;max-width:300px}
 .dot{height:10px;border-radius:5px;transition:background .4s,width .3s;width:10px}
 .dot.active{width:18px}
-.pause-btn{border:2px solid var(--phase);border-radius:14px;background:none;padding:16px 52px;
-  font-family:'Heebo',sans-serif;font-size:19px;font-weight:700;color:var(--phase);
-  cursor:pointer;transition:border-color .8s,color .8s}
+.pause-btn{border:2px solid var(--phase);border-radius:14px;background:none;padding:16px 52px;font-family:'Heebo',sans-serif;font-size:19px;font-weight:700;color:var(--phase);cursor:pointer;transition:border-color .8s,color .8s}
 .pause-btn:active{opacity:.7}
 .done-stats{color:var(--muted);font-size:14px;margin-top:16px;text-align:center;line-height:2;display:none}
+#bg-warning{position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;text-align:center;padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));z-index:100;display:none}
 
-/* Background warning banner */
-#bg-warning{position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;
-  font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;text-align:center;
-  padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));z-index:100;display:none}
+/* ── SUMMARY ── */
+#screen-summary{background:var(--bg);overflow:hidden}
+.sum-header{
+  flex-shrink:0;padding:0 20px 0;
+  padding-top:max(16px,env(safe-area-inset-top));
+}
+.sum-tagline{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--done);text-transform:uppercase;margin-bottom:4px;opacity:.8}
+.sum-hero{font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:14px}
+.sum-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Stat pills */
+.sum-stats{display:flex;gap:10px;padding:0 20px 12px;flex-shrink:0}
+.sum-stat{
+  flex:1;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;
+}
+.sum-stat::before{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none}
+.sum-stat.s-time::before{background:linear-gradient(135deg,#fff,transparent)}
+.sum-stat.s-dist::before{background:linear-gradient(135deg,var(--walk),transparent)}
+.sum-stat.s-pace::before{background:linear-gradient(135deg,var(--done),transparent)}
+.sum-stat-val{font-size:21px;font-weight:900;letter-spacing:-.5px;line-height:1.1}
+.sum-stat-lbl{font-size:9px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 
-/* Bank */
-.bank-header{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 20px 0;padding-top:max(12px,env(safe-area-inset-top))}
+/* Map */
+.sum-map-wrap{
+  margin:0 16px 12px;border-radius:20px;overflow:hidden;
+  border:1px solid var(--border);position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+#summary-map{height:320px;background:var(--card)}
+.sum-map-offline{
+  height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:var(--muted);font-size:14px;
+}
+/* Legend */
+.sum-legend{display:flex;gap:16px;justify-content:center;flex-direction:row-reverse;padding:0 20px 12px}
+.sum-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
+.sum-legend-line{width:24px;height:3px;border-radius:2px}
+/* Action buttons */
+.sum-actions{display:flex;flex-direction:column;gap:10px;padding:0 16px;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.sum-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px;border-radius:16px;border:none;cursor:pointer;
+  font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;
+  transition:transform .12s,opacity .12s;
+}
+.sum-btn:active{transform:scale(.97);opacity:.85}
+.sum-btn-replay{background:rgba(129,140,248,.12);border:1.5px solid rgba(129,140,248,.35);color:var(--done)}
+.sum-btn-video{background:rgba(0,217,126,.1);border:1.5px solid rgba(0,217,126,.3);color:var(--walk)}
+.sum-btn-new{background:var(--run);color:#fff}
+/* Overlay */
+#video-overlay{position:fixed;inset:0;background:rgba(8,8,16,.97);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px}
+#video-canvas{border-radius:14px;max-width:100%;box-shadow:0 0 60px rgba(0,0,0,.9)}
+.vid-status-row{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+#video-status{color:var(--text);font-size:15px;font-weight:700;text-align:center}
+.vid-progress-bar{width:240px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;display:none}
+.vid-progress-fill{height:100%;background:var(--walk);border-radius:2px;width:0%;transition:width .3s}
+#video-close{background:none;border:1.5px solid var(--border);border-radius:10px;padding:10px 28px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+
+/* BANK */
+.bank-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0;padding-top:max(12px,env(safe-area-inset-top))}
 .bank-title{font-size:20px;font-weight:800}
-.bank-tabs{display:flex;flex-direction:row-reverse;border-bottom:1px solid var(--border);
-  margin-bottom:8px;flex-shrink:0}
-.bank-tab{flex:1;padding:10px 0;text-align:center;background:none;border:none;cursor:pointer;
-  font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:var(--muted);
-  border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px}
+.bank-tabs{display:flex;flex-direction:row-reverse;border-bottom:1px solid var(--border);margin-bottom:8px;flex-shrink:0}
+.bank-tab{flex:1;padding:10px 0;text-align:center;background:none;border:none;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:var(--muted);border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px}
 .bank-tab.active{color:var(--phase);border-bottom-color:var(--phase)}
 .bank-list{flex:1;overflow-y:auto;padding:0 20px}
 .bank-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
-.msg-row{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;
-  background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:12px 14px;margin-bottom:8px}
+.msg-row{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .msg-text{flex:1;font-size:14px;text-align:right;line-height:1.4}
 .msg-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px}
-.bank-input-row{display:flex;flex-direction:row-reverse;gap:10px;padding:12px 20px;
-  padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);
-  flex-shrink:0;background:var(--bg)}
-.bank-input{flex:1;background:var(--input);color:var(--text);border:1px solid var(--border);
-  border-radius:12px;padding:12px 14px;font-family:'Heebo',sans-serif;font-size:15px;
-  direction:rtl;outline:none}
-.bank-add-btn{width:50px;border-radius:12px;border:none;font-size:26px;font-weight:300;
-  cursor:pointer;color:#fff;transition:opacity .2s}
+.bank-input-row{display:flex;flex-direction:row-reverse;gap:10px;padding:12px 20px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.bank-input{flex:1;background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Heebo',sans-serif;font-size:15px;direction:rtl;outline:none}
+.bank-add-btn{width:50px;border-radius:12px;border:none;font-size:26px;cursor:pointer;color:#fff;transition:opacity .2s}
 .bank-add-btn:disabled{opacity:.3}
-.install-hint{font-size:12px;color:var(--muted);text-align:center;padding:10px 20px 0;line-height:1.5}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
-
 <div id="phase-glow"></div>
-<div id="bg-warning">⚠️ האפליקציה ברקע — חזור לאפליקציה כדי שהטיימר ימשיך לרוץ</div>
+<div id="bg-warning">⚠️ האפליקציה ברקע — חזור לאפליקציה לטיימר</div>
 
-<!-- ══════════════════════════════════════════
-     SETUP
-══════════════════════════════════════════ -->
+<!-- ════════════════ SETUP ════════════════ -->
 <div class="screen active safe-top safe-bottom" id="screen-setup">
   <div class="top-bar" style="padding-bottom:4px">
     <h1>ריצה חכמה 🏃</h1>
     <div style="display:flex;gap:8px">
-      <button class="btn-ghost" onclick="location.reload()" title="רענן">🔄</button>
+      <button class="btn-ghost" onclick="location.reload()">🔄</button>
       <button class="btn-ghost" onclick="goBank()">💬 הודעות</button>
     </div>
   </div>
@@ -175,8 +190,6 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
       <div id="phase-list"></div>
     </div>
     <div class="add-row" id="add-row"></div>
-
-    <!-- Repeat -->
     <div class="card" id="repeat-card" style="display:none">
       <div class="card-title">🔁 חזרות</div>
       <div class="card-hint">השלב הראשון (חימום) פעם אחת. שאר השלבים חוזרים X פעמים.</div>
@@ -187,8 +200,6 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
         <div class="repeat-label" id="repeat-label">סבב אחד</div>
       </div>
     </div>
-
-    <!-- Target distance -->
     <div class="card">
       <div class="card-title">🎯 מרחק יעד (אופציונלי)</div>
       <div class="card-hint">100 מטר לפני הגעה ליעד — תקבל הודעה קולית.</div>
@@ -196,23 +207,20 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
         <input class="target-input" id="target-input" type="number" min="0" placeholder="0" oninput="updateTargetLabel()">
         <button class="target-unit-btn active" id="target-unit-m" onclick="setTargetUnit('m')">מ׳</button>
         <button class="target-unit-btn" id="target-unit-km" onclick="setTargetUnit('km')">ק"מ</button>
-        <button class="target-clear" onclick="clearTarget()">✕ נקה</button>
+        <button class="target-clear" onclick="clearTarget()">✕</button>
       </div>
       <div id="target-label" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:right"></div>
     </div>
-
-    <div class="summary-box" id="summary-box" style="display:none">
-      <div class="summary-main" id="summary-main"></div>
-      <div class="summary-sub" id="summary-sub"></div>
+    <div class="setup-summary" id="summary-box" style="display:none">
+      <div class="setup-summary-main" id="summary-main"></div>
+      <div class="setup-summary-sub" id="summary-sub"></div>
     </div>
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     TIMER
-══════════════════════════════════════════ -->
+<!-- ════════════════ TIMER ════════════════ -->
 <div class="screen" id="screen-timer">
   <div class="timer-top safe-top">
     <button class="timer-exit" onclick="confirmExit()">✕ סיים</button>
@@ -239,9 +247,56 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
   <div id="done-stats" class="done-stats"></div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     BANK
-══════════════════════════════════════════ -->
+<!-- ════════════════ SUMMARY ════════════════ -->
+<div class="screen" id="screen-summary">
+  <div class="sum-header safe-top">
+    <div class="sum-tagline">סיכום אימון</div>
+    <div class="sum-hero" id="sum-hero">כל הכבוד! 🏆</div>
+  </div>
+  <div class="sum-body">
+    <div class="sum-stats">
+      <div class="sum-stat s-time">
+        <div class="sum-stat-val" id="sum-time">--:--</div>
+        <div class="sum-stat-lbl">זמן</div>
+      </div>
+      <div class="sum-stat s-dist">
+        <div class="sum-stat-val" id="sum-dist" style="color:var(--walk)">--</div>
+        <div class="sum-stat-lbl">מרחק</div>
+      </div>
+      <div class="sum-stat s-pace">
+        <div class="sum-stat-val" id="sum-pace" style="color:var(--done)">--</div>
+        <div class="sum-stat-lbl">קצב</div>
+      </div>
+    </div>
+    <div class="sum-legend" id="sum-legend"></div>
+    <div class="sum-map-wrap">
+      <div id="summary-map">
+        <div class="sum-map-offline" id="sum-no-gps" style="display:none">
+          <div style="font-size:36px">📡</div>
+          <div>לא נרשמו נקודות GPS</div>
+          <div style="font-size:12px;margin-top:4px">וודא שה-GPS פעיל ו-HTTPS פעיל</div>
+        </div>
+      </div>
+    </div>
+    <div class="sum-actions">
+      <button class="sum-btn sum-btn-replay" onclick="replayRoute()" id="btn-replay">🎬 הפעל שוב</button>
+      <button class="sum-btn sum-btn-video" onclick="startVideoExport()" id="btn-video">⬇️ הורד סרטון</button>
+      <button class="sum-btn sum-btn-new" onclick="goSetup()">🏃 אימון חדש</button>
+    </div>
+  </div>
+</div>
+
+<!-- Video overlay -->
+<div id="video-overlay">
+  <canvas id="video-canvas" width="390" height="700"></canvas>
+  <div class="vid-status-row">
+    <div id="video-status">⏳ טוען...</div>
+    <div class="vid-progress-bar" id="vid-progress-bar"><div class="vid-progress-fill" id="vid-progress-fill"></div></div>
+  </div>
+  <button id="video-close" onclick="closeVideoOverlay()">סגור</button>
+</div>
+
+<!-- ════════════════ BANK ════════════════ -->
 <div class="screen" id="screen-bank" style="overflow:hidden">
   <div class="bank-header safe-top">
     <div class="bank-title">💬 בנק הודעות</div>
@@ -251,724 +306,717 @@ h1{font-size:28px;font-weight:900;letter-spacing:-0.5px}
     </div>
   </div>
   <div class="bank-tabs" id="bank-tabs"></div>
-  <div class="bank-list" id="bank-list">
-    <div class="bank-hint" id="bank-hint"></div>
-    <div id="bank-msgs"></div>
-  </div>
+  <div class="bank-list"><div class="bank-hint" id="bank-hint"></div><div id="bank-msgs"></div></div>
   <div class="bank-input-row">
     <input class="bank-input" id="bank-input" type="text" placeholder="הוסף הודעה..." dir="rtl">
-    <button class="bank-add-btn" id="bank-add-btn" onclick="addBankMsg()" disabled
-      style="background:var(--run)">+</button>
+    <button class="bank-add-btn" id="bank-add-btn" onclick="addBankMsg()" disabled style="background:var(--run)">+</button>
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // CONSTANTS
-// ═══════════════════════════════════════════
-const PHASE_TYPES = ['warmup','run','walk'];
-const PHASE_META = {
-  warmup:{label:'חימום', emoji:'🚶',color:'#f59e0b'},
-  run:   {label:'ריצה',  emoji:'🏃',color:'#ff3d3d'},
+// ════════════════════════════════════════════
+const PHASE_TYPES=['warmup','run','walk'];
+const PHASE_META={
+  warmup:{label:'חימום',emoji:'🚶',color:'#f59e0b'},
+  run:   {label:'ריצה', emoji:'🏃',color:'#ff3d3d'},
   walk:  {label:'הליכה',emoji:'🚶',color:'#00d97e'},
 };
-const CIRCLE_C = 2 * Math.PI * 105; // 659.7
-const BANK_KEY    = 'running_bank_v2';
-const WORKOUT_KEY = 'running_workout_v2';
-const STATE_KEY   = 'running_state_v2';
-
-const DEFAULT_BANK = {
-  run: [
-    'אלוף שכמותך, תמשיך ככה!',
-    'יאללה מלך, אתה שורף אותה!',
-    'תראה אותך רץ, מגעיל כמה שאתה טוב!',
-    'בן אדם, אתה מכונה!',
-    'מי שרואה אותך עכשיו מתבייש שהוא לא רץ!',
-    'הרגליים יודעות מה לעשות, תן להן לרוץ!',
-  ],
-  walk: [
-    'תנשום עמוק, מגיע לך!',
-    'מנוחה היא חלק מהאימון, אלוף!',
-    'ישר לב, כתפיים אחורה, הליכה מלכותית!',
-    'תיקח אוויר טוב לסבב הבא!',
-  ],
-  warmup: [
-    'חימום טוב — שרירים מאושרים!',
-    'קדימה, עוד קצת חימום ואז יש כיף!',
-  ],
+const CIRCLE_C=2*Math.PI*105;
+const BANK_KEY='running_bank_v2',WORKOUT_KEY='running_workout_v2',STATE_KEY='running_state_v2';
+const DEFAULT_BANK={
+  run:['אלוף שכמותך, תמשיך ככה!','יאללה מלך, אתה שורף אותה!',
+       'תראה אותך רץ, מגעיל כמה שאתה טוב!','בן אדם, אתה מכונה!',
+       'מי שרואה אותך עכשיו מתבייש שהוא לא רץ!','הרגליים יודעות מה לעשות, תן להן לרוץ!'],
+  walk:['תנשום עמוק, מגיע לך!','מנוחה היא חלק מהאימון, אלוף!',
+        'ישר לב, כתפיים אחורה, הליכה מלכותית!','תיקח אוויר טוב לסבב הבא!'],
+  warmup:['חימום טוב — שרירים מאושרים!','קדימה, עוד קצת חימום ואז יש כיף!'],
 };
-const DONE_MSGS = [
-  'סיימת! ימטורף כמה שאתה טוב!',
-  'כל הכבוד! אלוף אמיתי!',
-  'מגעיל כמה שאתה חזק!',
-  'יאללה גיבור! האימון הסתיים!',
-];
+const DONE_MSGS=['סיימת! ימטורף כמה שאתה טוב!','כל הכבוד! אלוף אמיתי!','מגעיל כמה שאתה חזק!','יאללה גיבור! האימון הסתיים!'];
+const DONE_HEROES=['ריצה של אלוף! 🏆','תגמול מגיע לך! 🔥','שיבר אותה! 💪','מה שלא יהרוג יחזק! 🏅'];
 
-// ═══════════════════════════════════════════
-// STATE — SETUP
-// ═══════════════════════════════════════════
-let phases = [
-  {id:1,type:'warmup',secs:300},
-  {id:2,type:'run',   secs:120},
-  {id:3,type:'walk',  secs:60 },
-];
-let repeat     = 1;
-let nextId     = 4;
-let bank       = null;
-let activeBankTab = 'run';
-let targetMeters  = 0;  // 0 = no target
-let targetUnit    = 'm';
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let phases=[{id:1,type:'warmup',secs:300},{id:2,type:'run',secs:120},{id:3,type:'walk',secs:60}];
+let repeat=1,nextId=4,bank=null,activeBankTab='run',targetMeters=0,targetUnit='m';
 
-// ═══════════════════════════════════════════
-// STATE — TIMER
-// ═══════════════════════════════════════════
-let expandedPhases  = [];
-let phaseIdx        = 0;
-let workoutStartWall= 0;  // Date.now() when workout started
-let phaseStartWall  = 0;  // Date.now() when current phase started
-let pausedAt        = 0;  // Date.now() when paused (0 = not paused)
-let totalPausedMs   = 0;  // total ms spent paused
-let isRunning       = false;
-let isDone          = false;
-let timerInterval   = null;
-
-// Per-phase announcement flags (reset on advancePhase)
-let announced30     = false;
-let announcedHalf   = false;
-let lastAnnounceWall= 0;  // wall-clock ms of last announcement
+let expandedPhases=[],phaseIdx=0;
+let workoutStartWall=0,phaseStartWall=0,pausedAt=0,totalPausedMs=0;
+let isRunning=false,isDone=false,timerInterval=null;
+let announced30=false,announcedHalf=false,lastAnnounceWall=0;
+let finalElapsedSecs=0,finalDistance=0;
 
 // GPS
-let totalDistance   = 0;
-let lastPos         = null;
-let geoWatch        = null;
-let gpsStatus       = 'requesting';
-let targetWarned    = false;  // 100m warning fired
-let targetReached   = false;  // arrival fired
+let totalDistance=0,lastPos=null,geoWatch=null,gpsStatus='requesting';
+let targetWarned=false,targetReached=false;
+let gpsTrack=[],lastTrackTs=0;
 
-// Wake lock
-let audioCtx = null;
-let silentNode = null;
+// Summary
+let leafletMap=null,replayInterval=null,doneStatsInterval=null;
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // STORAGE
-// ═══════════════════════════════════════════
-function loadBank() {
-  try { bank = JSON.parse(localStorage.getItem(BANK_KEY)) || JSON.parse(JSON.stringify(DEFAULT_BANK)); }
-  catch { bank = JSON.parse(JSON.stringify(DEFAULT_BANK)); }
+// ════════════════════════════════════════════
+function loadBank(){try{bank=JSON.parse(localStorage.getItem(BANK_KEY))||JSON.parse(JSON.stringify(DEFAULT_BANK))}catch{bank=JSON.parse(JSON.stringify(DEFAULT_BANK))}}
+function saveBank(){localStorage.setItem(BANK_KEY,JSON.stringify(bank))}
+function loadWorkout(){
+  try{
+    const s=JSON.parse(localStorage.getItem(WORKOUT_KEY));
+    if(s?.phases?.length){phases=s.phases;nextId=Math.max(...phases.map(p=>p.id))+1}
+    if(s?.repeat)repeat=s.repeat;
+    if(s?.targetMeters)targetMeters=s.targetMeters;
+    if(s?.targetUnit)targetUnit=s.targetUnit;
+  }catch{}
 }
-function saveBank() { localStorage.setItem(BANK_KEY, JSON.stringify(bank)); }
+function saveWorkout(){localStorage.setItem(WORKOUT_KEY,JSON.stringify({phases,repeat,targetMeters,targetUnit}))}
 
-function loadWorkout() {
-  try {
-    const s = JSON.parse(localStorage.getItem(WORKOUT_KEY));
-    if (s?.phases?.length) { phases = s.phases; nextId = Math.max(...phases.map(p=>p.id))+1; }
-    if (s?.repeat) repeat = s.repeat;
-    if (s?.targetMeters) targetMeters = s.targetMeters;
-    if (s?.targetUnit)   targetUnit   = s.targetUnit;
-  } catch {}
-}
-function saveWorkout() {
-  localStorage.setItem(WORKOUT_KEY, JSON.stringify({phases,repeat,targetMeters,targetUnit}));
-}
-
-// Save timer state so we can restore after background kill (best-effort)
-function saveTimerState() {
-  if (!isRunning && !isDone) return;
-  localStorage.setItem(STATE_KEY, JSON.stringify({
-    expandedPhases, phaseIdx, workoutStartWall, phaseStartWall,
-    totalPausedMs, isRunning: isRunning && !isDone,
-    totalDistance, announced30, announcedHalf, lastAnnounceWall,
-    targetWarned, targetReached,
-  }));
-}
-
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════
-function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
-function randFrom(type) {
-  const msgs = bank?.[type];
-  return msgs?.length ? rand(msgs) : rand(DEFAULT_BANK[type]||['קדימה!']);
-}
-function formatTime(s) {
-  s = Math.max(0,Math.round(s));
-  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-}
-function formatDist(m) {
-  if (m < 1) return '0 מ׳';
-  if (m < 1000) return `${Math.round(m)} מ׳`;
-  return `${(m/1000).toFixed(3)} ק"מ`;
-}
-function formatDuration(secs) {
-  secs = Math.round(secs);
-  const m = Math.floor(secs/60), s = secs%60;
-  if (m === 0) return `${s} שניות`;
-  if (s === 0) return m===1?'דקה':`${m} דקות`;
-  return `${m} דקות ו-${s} שניות`;
-}
-function timeAwareMsg(elapsedInPhase, remainInPhase, motivational) {
-  const parts = [];
-  if (elapsedInPhase >= 60) parts.push(`עברו ${formatDuration(elapsedInPhase)}`);
-  if (remainInPhase > 5)    parts.push(`נשאר ${formatDuration(remainInPhase)}`);
-  return parts.length ? `${parts.join(', ')} — ${motivational}` : motivational;
-}
-function haversine(lat1,lon1,lat2,lon2) {
-  const R=6371000, r=d=>d*Math.PI/180;
-  const a=Math.sin(r(lat2-lat1)/2)**2+Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(r(lon2-lon1)/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-function hexToRgba(hex,a) {
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
+// ════════════════════════════════════════════
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function randFrom(t){const m=bank?.[t];return m?.length?rand(m):rand(DEFAULT_BANK[t]||['קדימה!'])}
+function formatTime(s){s=Math.max(0,Math.round(s));return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+function formatDist(m){if(m<1)return'0 מ׳';if(m<1000)return`${Math.round(m)} מ׳`;return`${(m/1000).toFixed(3)} ק"מ`}
+function formatPace(meters,secs){if(meters<100||secs<1)return'--';return formatTime((secs/meters)*1000)+'/ק"מ'}
+function formatDuration(s){s=Math.round(s);const m=Math.floor(s/60),r=s%60;if(m===0)return`${r} שניות`;if(r===0)return m===1?'דקה':`${m} דקות`;return`${m} דקות ו-${r} שניות`}
+function timeAwareMsg(ep,rp,mot){const p=[];if(ep>=60)p.push(`עברו ${formatDuration(ep)}`);if(rp>5)p.push(`נשאר ${formatDuration(rp)}`);return p.length?`${p.join(', ')} — ${mot}`:mot}
+function haversine(la1,lo1,la2,lo2){const R=6371000,r=d=>d*Math.PI/180;const a=Math.sin(r(la2-la1)/2)**2+Math.cos(r(la1))*Math.cos(r(la2))*Math.sin(r(lo2-lo1)/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function hexToRgba(h,a){return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`}
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // SPEECH
-// ═══════════════════════════════════════════
-let isSpeaking = false;
-let speechQueue = [];
-function speak(text) {
-  speechQueue = [text];
-  processSpeech();
-}
-function processSpeech() {
-  if (isSpeaking || !speechQueue.length) return;
-  const text = speechQueue.shift();
-  isSpeaking = true;
+// ════════════════════════════════════════════
+let isSpeaking=false,speechQueue=[];
+function speak(text){speechQueue=[text];processSpeech()}
+function processSpeech(){
+  if(isSpeaking||!speechQueue.length)return;
+  isSpeaking=true;const text=speechQueue.shift();
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang='he-IL'; utt.rate=0.95; utt.pitch=1.0;
-  const voices = window.speechSynthesis.getVoices();
-  const heVoice = voices.find(v=>v.lang.startsWith('he'));
-  if (heVoice) utt.voice = heVoice;
-  utt.onend = utt.onerror = ()=>{ isSpeaking=false; processSpeech(); };
-  window.speechSynthesis.speak(utt);
+  const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';u.rate=0.95;u.pitch=1;
+  const hv=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('he'));if(hv)u.voice=hv;
+  u.onend=u.onerror=()=>{isSpeaking=false;processSpeech()};
+  window.speechSynthesis.speak(u);
 }
-if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = ()=>{};
+if(window.speechSynthesis)window.speechSynthesis.onvoiceschanged=()=>{};
 
-// ═══════════════════════════════════════════
-// WAKE LOCK (silent audio — keeps iOS alive)
-// ═══════════════════════════════════════════
-function startWakeLock() {
-  try {
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const osc  = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    gain.gain.value = 0.001;
-    osc.frequency.value = 1;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    silentNode = osc;
-  } catch(e) {}
-}
-function stopWakeLock() {
-  try { silentNode?.stop(); audioCtx?.close(); audioCtx=null; silentNode=null; } catch(e){}
-}
+// ════════════════════════════════════════════
+// WAKE LOCK
+// ════════════════════════════════════════════
+let audioCtx=null,silentNode=null;
+function startWakeLock(){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();g.gain.value=0.001;o.frequency.value=1;o.connect(g);g.connect(audioCtx.destination);o.start();silentNode=o}catch(e){}}
+function stopWakeLock(){try{silentNode?.stop();audioCtx?.close();audioCtx=null;silentNode=null}catch(e){}}
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // GPS
-// ═══════════════════════════════════════════
-function startGPS() {
-  if (!navigator.geolocation) { gpsStatus='denied'; updateDistanceUI(); return; }
-  geoWatch = navigator.geolocation.watchPosition(
-    pos => {
-      if (!isRunning) return;
-      const {latitude:lat,longitude:lon} = pos.coords;
-      if (lastPos) {
-        const d = haversine(lastPos.lat,lastPos.lon,lat,lon);
-        if (d < 50) {
-          totalDistance += d;
-          checkTargetDistance();
-        }
-      }
-      lastPos = {lat,lon};
-      gpsStatus = 'active';
-      updateDistanceUI();
-    },
-    ()=>{ gpsStatus='denied'; updateDistanceUI(); },
-    {enableHighAccuracy:true, maximumAge:2000, timeout:10000}
-  );
+// ════════════════════════════════════════════
+function startGPS(){
+  if(!navigator.geolocation){gpsStatus='denied';updateDistUI();return}
+  geoWatch=navigator.geolocation.watchPosition(pos=>{
+    if(!isRunning)return;
+    const{latitude:lat,longitude:lng}=pos.coords;
+    if(lastPos){const d=haversine(lastPos.lat,lastPos.lng,lat,lng);if(d<50){totalDistance+=d;checkTarget()}}
+    lastPos={lat,lng};gpsStatus='active';
+    const now=Date.now();
+    if(now-lastTrackTs>=3000){
+      gpsTrack.push({lat,lng,ts:now,phase:expandedPhases[phaseIdx]?.type||'run'});
+      lastTrackTs=now;
+    }
+    updateDistUI();
+  },()=>{gpsStatus='denied';updateDistUI()},{enableHighAccuracy:true,maximumAge:2000,timeout:10000});
 }
-function stopGPS() {
-  if (geoWatch!=null) { navigator.geolocation.clearWatch(geoWatch); geoWatch=null; }
-}
-function updateDistanceUI() {
-  const val = document.getElementById('distance-val');
-  const lbl = document.getElementById('distance-lbl');
-  if (!val) return;
-  if (gpsStatus==='denied')     { val.textContent='ללא GPS'; lbl.style.display='none'; return; }
-  if (gpsStatus==='requesting') { val.textContent='📡 מחפש GPS...'; lbl.style.display='none'; return; }
-  val.textContent = `📍 ${formatDist(totalDistance)}`;
-  lbl.style.display = 'block';
-  // Target progress
+function stopGPS(){if(geoWatch!=null){navigator.geolocation.clearWatch(geoWatch);geoWatch=null}}
+function updateDistUI(){
+  const v=document.getElementById('distance-val'),l=document.getElementById('distance-lbl');
+  if(!v)return;
+  if(gpsStatus==='denied'){v.textContent='ללא GPS';l.style.display='none';return}
+  if(gpsStatus==='requesting'){v.textContent='📡 מחפש GPS...';l.style.display='none';return}
+  v.textContent=`📍 ${formatDist(totalDistance)}`;l.style.display='block';
+  const dd=document.getElementById('done-dist');if(dd)dd.textContent=formatDist(totalDistance);
   updateTargetBadge();
 }
-function checkTargetDistance() {
-  if (!targetMeters || targetReached) return;
-  const remaining = targetMeters - totalDistance;
-  if (remaining <= 0 && !targetReached) {
-    targetReached = true;
-    speak('הגעת למרחק היעד! כל הכבוד אלוף!');
-  } else if (remaining <= 100 && !targetWarned) {
-    targetWarned = true;
-    speak(`עוד 100 מטר — מגיע ליעד!`);
-  }
+function checkTarget(){
+  if(!targetMeters||targetReached)return;
+  const rem=targetMeters-totalDistance;
+  if(rem<=0&&!targetReached){targetReached=true;speak('הגעת למרחק היעד! כל הכבוד אלוף!')}
+  else if(rem<=100&&!targetWarned){targetWarned=true;speak('עוד 100 מטר — מגיע ליעד!')}
 }
-function updateTargetBadge() {
-  const badge = document.getElementById('target-badge');
-  if (!badge || !targetMeters) { if(badge) badge.textContent=''; return; }
-  if (targetReached) { badge.textContent='✅ הגעת ליעד!'; badge.style.color='var(--walk)'; return; }
-  const remaining = Math.max(0, targetMeters - totalDistance);
-  badge.style.color = remaining <= 100 ? 'var(--walk)' : 'var(--muted)';
-  badge.textContent = `🎯 נשאר ${formatDist(remaining)} מתוך ${formatDist(targetMeters)}`;
+function updateTargetBadge(){
+  const b=document.getElementById('target-badge');if(!b||!targetMeters){if(b)b.textContent='';return}
+  if(targetReached){b.textContent='✅ הגעת ליעד!';b.style.color='var(--walk)';return}
+  const rem=Math.max(0,targetMeters-totalDistance);
+  b.style.color=rem<=100?'var(--walk)':'var(--muted)';
+  b.textContent=`🎯 נשאר ${formatDist(rem)} מתוך ${formatDist(targetMeters)}`;
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // PHASE COLOR
-// ═══════════════════════════════════════════
-function applyPhaseColor(type) {
-  const c = PHASE_META[type]?.color || '#ff3d3d';
-  document.documentElement.style.setProperty('--phase', c);
-  document.documentElement.style.setProperty('--phase-glow', hexToRgba(c,0.13));
-  document.getElementById('phase-glow').style.display = 'block';
+// ════════════════════════════════════════════
+function applyPhaseColor(type){
+  const c=PHASE_META[type]?.color||'#ff3d3d';
+  document.documentElement.style.setProperty('--phase',c);
+  document.documentElement.style.setProperty('--phase-glow',hexToRgba(c,.13));
+  document.getElementById('phase-glow').style.display='block';
 }
 
-// ═══════════════════════════════════════════
-// TIMER — TIMESTAMP BASED
-// ═══════════════════════════════════════════
-function buildExpandedPhases() {
-  const first = phases[0];
-  const rest  = phases.slice(1);
-  const exp   = [{...first, eid:'e-0-0'}];
-  for (let r=0; r<repeat; r++)
-    rest.forEach((ph,i) => exp.push({...ph, eid:`e-${r}-${i+1}`}));
+// ════════════════════════════════════════════
+// TIMER
+// ════════════════════════════════════════════
+function buildExpandedPhases(){
+  const exp=[{...phases[0],eid:'e-0-0'}];
+  for(let r=0;r<repeat;r++)phases.slice(1).forEach((ph,i)=>exp.push({...ph,eid:`e-${r}-${i+1}`}));
   return exp;
 }
+function elapsedInPhaseSecs(){return((pausedAt||Date.now())-phaseStartWall-totalPausedMs)/1000}
+function totalElapsedSecs(){return((pausedAt||Date.now())-workoutStartWall-totalPausedMs)/1000}
 
-// How many seconds have truly elapsed in current phase (accounts for pauses)
-function elapsedInPhaseSecs() {
-  const now = pausedAt || Date.now();
-  return (now - phaseStartWall - totalPausedMs) / 1000;
-}
-// Total elapsed workout seconds
-function totalElapsedSecs() {
-  const now = pausedAt || Date.now();
-  return (now - workoutStartWall - totalPausedMs) / 1000;
-}
-
-function startWorkout() {
+function startWorkout(){
   saveWorkout();
-  expandedPhases   = buildExpandedPhases();
-  phaseIdx         = 0;
-  totalDistance    = 0;
-  lastPos          = null;
-  isDone           = false;
-  gpsStatus        = 'requesting';
-  targetWarned     = false;
-  targetReached    = false;
-
-  const now = Date.now();
-  workoutStartWall = now;
-  phaseStartWall   = now;
-  totalPausedMs    = 0;
-  pausedAt         = 0;
-  announced30      = false;
-  announcedHalf    = false;
-  lastAnnounceWall = now;
-  isRunning        = true;
-
-  startWakeLock();
-  startGPS();
-  goTimer();
-  buildTimerDots();
-  updateTimerUI();
+  expandedPhases=buildExpandedPhases();phaseIdx=0;totalDistance=0;lastPos=null;isDone=false;
+  gpsStatus='requesting';targetWarned=false;targetReached=false;gpsTrack=[];lastTrackTs=0;
+  const now=Date.now();workoutStartWall=now;phaseStartWall=now;totalPausedMs=0;pausedAt=0;
+  announced30=false;announcedHalf=false;lastAnnounceWall=now;isRunning=true;
+  startWakeLock();startGPS();goTimer();buildTimerDots();updateTimerUI();
   applyPhaseColor(expandedPhases[0].type);
-
-  timerInterval = setInterval(tick, 250);
+  timerInterval=setInterval(tick,250);
   speak(`מתחילים ${PHASE_META[expandedPhases[0].type].label}. קדימה!`);
 }
 
-function tick() {
-  if (!isRunning || pausedAt) return;
-
-  const ph = expandedPhases[phaseIdx];
-  const elapsedPhase = elapsedInPhaseSecs();
-  const tl = Math.max(0, ph.secs - elapsedPhase);
-
-  // ── Countdown 3-2-1 ──
-  if (tl <= 3.5 && tl > 3.0 && ph.secs > 5) speak('שלוש');
-  else if (tl <= 2.5 && tl > 2.0 && ph.secs > 5) speak('שתיים');
-  else if (tl <= 1.5 && tl > 1.0 && ph.secs > 5) speak('אחת');
-
-  // ── 30s warning ──
-  if (!announced30 && tl <= 30 && tl > 29 && ph.secs > 40) {
-    announced30 = true;
-    lastAnnounceWall = Date.now();
-    speak(timeAwareMsg(Math.round(elapsedPhase), 30, randFrom(ph.type)));
-  }
-
-  // ── Halfway (phases ≥ 2 min) ──
-  if (!announcedHalf && ph.secs >= 120 && elapsedPhase >= ph.secs/2 && tl > 35) {
-    announcedHalf = true;
-    lastAnnounceWall = Date.now();
-    speak(timeAwareMsg(Math.round(elapsedPhase), Math.round(tl), randFrom(ph.type)));
-  }
-
-  // ── 3-minute silence rule ──
-  const silenceSecs = (Date.now() - lastAnnounceWall) / 1000;
-  if (silenceSecs >= 180 && tl > 15 && !isDone) {
-    lastAnnounceWall = Date.now();
-    speak(timeAwareMsg(Math.round(elapsedPhase), Math.round(tl), randFrom(ph.type)));
-  }
-
-  // ── Phase done? ──
-  if (tl <= 0) { advancePhase(); return; }
-
-  updateTimerUI();
-  saveTimerState();
+function remainingText(idx,tl){
+  let t=Math.round(tl);for(let i=idx+1;i<expandedPhases.length;i++)t+=expandedPhases[i].secs;
+  const m=Math.round(t/60);if(m<1)return'';
+  return`נשאר עוד ${m===1?'דקה אחת':m+' דקות'} לסיום`;
 }
 
-function advancePhase() {
-  try { navigator.vibrate?.(400); } catch {}
-  const next = phaseIdx + 1;
-  if (next >= expandedPhases.length) {
-    // DONE
-    isDone = true; isRunning = false;
-    clearInterval(timerInterval);
-    stopWakeLock(); // GPS keeps running until user exits
+function tick(){
+  if(!isRunning||pausedAt)return;
+  const ph=expandedPhases[phaseIdx],ep=elapsedInPhaseSecs(),tl=Math.max(0,ph.secs-ep);
+
+  // 3-2-1
+  if(tl<=3.5&&tl>3&&ph.secs>5)speak('שלוש');
+  else if(tl<=2.5&&tl>2&&ph.secs>5)speak('שתיים');
+  else if(tl<=1.5&&tl>1&&ph.secs>5)speak('אחת');
+
+  // 30s
+  if(!announced30&&tl<=30&&tl>29&&ph.secs>40){
+    announced30=true;lastAnnounceWall=Date.now();
+    const b=timeAwareMsg(Math.round(ep),30,randFrom(ph.type)),r=remainingText(phaseIdx,tl);
+    speak(r?`${b}. ${r}`:b);
+  }
+  // Halfway
+  if(!announcedHalf&&ph.secs>=120&&ep>=ph.secs/2&&tl>35){
+    announcedHalf=true;lastAnnounceWall=Date.now();
+    const b=timeAwareMsg(Math.round(ep),Math.round(tl),randFrom(ph.type)),r=remainingText(phaseIdx,tl);
+    speak(r?`${b}. ${r}`:b);
+  }
+  // Silence
+  if((Date.now()-lastAnnounceWall)/1000>=180&&tl>15&&!isDone){
+    lastAnnounceWall=Date.now();
+    const b=timeAwareMsg(Math.round(ep),Math.round(tl),randFrom(ph.type)),r=remainingText(phaseIdx,tl);
+    speak(r?`${b}. ${r}`:b);
+  }
+  if(tl<=0){advancePhase();return}
+  updateTimerUI();
+}
+
+function advancePhase(){
+  try{navigator.vibrate?.(400)}catch{}
+  const next=phaseIdx+1;
+  if(next>=expandedPhases.length){
+    isDone=true;isRunning=false;
+    finalElapsedSecs=totalElapsedSecs();finalDistance=totalDistance;
+    clearInterval(timerInterval);stopWakeLock();
     speak(rand(DONE_MSGS));
-    try { navigator.vibrate?.([400,200,400,200,600]); } catch {}
+    try{navigator.vibrate?.([400,200,400,200,600])}catch{}
     showDoneUI();
-    localStorage.removeItem(STATE_KEY);
-  } else {
-    phaseIdx      = next;
-    announced30   = false;
-    announcedHalf = false;
-    phaseStartWall= Date.now();
-    totalPausedMs = 0;
-    lastAnnounceWall = Date.now();
-    const ph = expandedPhases[next];
-    applyPhaseColor(ph.type);
+  }else{
+    phaseIdx=next;announced30=false;announcedHalf=false;
+    phaseStartWall=Date.now();totalPausedMs=0;lastAnnounceWall=Date.now();
+    const ph=expandedPhases[next];applyPhaseColor(ph.type);
     speak(`${PHASE_META[ph.type].label}! ${ph.type==='run'?'קדימה!':'נשמו.'}`);
     updateTimerUI();
   }
 }
 
-function togglePause() {
-  if (isDone) return;
-  if (isRunning) {
-    // Pause
-    pausedAt  = Date.now();
-    isRunning = false;
-    document.getElementById('pause-btn').textContent = '▶ המשך';
-    speak('הפסקה');
-  } else {
-    // Resume
-    totalPausedMs += Date.now() - pausedAt;
-    pausedAt  = 0;
-    isRunning = true;
-    lastAnnounceWall = Date.now();
-    document.getElementById('pause-btn').textContent = '⏸ עצור';
-    speak('ממשיכים!');
-  }
+function togglePause(){
+  if(isDone)return;
+  if(isRunning){pausedAt=Date.now();isRunning=false;document.getElementById('pause-btn').textContent='▶ המשך';speak('הפסקה')}
+  else{totalPausedMs+=Date.now()-pausedAt;pausedAt=0;isRunning=true;lastAnnounceWall=Date.now();document.getElementById('pause-btn').textContent='⏸ עצור';speak('ממשיכים!')}
 }
 
-function confirmExit() {
-  if (confirm('לסיים את האימון?')) exitTimer();
-}
-function exitTimer() {
-  clearInterval(timerInterval);
-  clearInterval(doneStatsInterval);
-  stopGPS(); stopWakeLock();
-  isRunning = false; isDone = false;
+function confirmExit(){if(confirm('לסיים את האימון?'))exitTimer()}
+function exitTimer(){
+  clearInterval(timerInterval);clearInterval(doneStatsInterval);
+  stopGPS();stopWakeLock();isRunning=false;isDone=false;
   window.speechSynthesis?.cancel();
   document.getElementById('phase-glow').style.display='none';
   document.getElementById('bg-warning').style.display='none';
-  localStorage.removeItem(STATE_KEY);
   goSetup();
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // TIMER UI
-// ═══════════════════════════════════════════
-function buildTimerDots() {
-  const row = document.getElementById('dots-row');
-  row.innerHTML = '';
+// ════════════════════════════════════════════
+function buildTimerDots(){
+  const row=document.getElementById('dots-row');row.innerHTML='';
+  expandedPhases.forEach((_,i)=>{const d=document.createElement('div');d.className='dot';d.id=`dot-${i}`;row.appendChild(d)});
+}
+function updateTimerUI(){
+  if(isDone)return;
+  const ph=expandedPhases[phaseIdx],meta=PHASE_META[ph.type];
+  const tl=Math.max(0,ph.secs-elapsedInPhaseSecs()),te=totalElapsedSecs();
+  document.getElementById('timer-phase-label').textContent=`${meta.label} ${meta.emoji}`;
+  document.getElementById('timer-phase-label').style.color=meta.color;
+  document.getElementById('timer-countdown').textContent=formatTime(tl);
+  document.getElementById('timer-countdown').style.color=meta.color;
+  document.getElementById('timer-elapsed').textContent=`⏱ ${formatTime(te)}`;
+  document.getElementById('timer-step').textContent=`שלב ${phaseIdx+1} מתוך ${expandedPhases.length}`;
+  const ring=document.getElementById('timer-ring');ring.style.strokeDashoffset=CIRCLE_C*(1-tl/ph.secs);ring.style.stroke=meta.color;
   expandedPhases.forEach((_,i)=>{
-    const d = document.createElement('div');
-    d.className='dot'; d.id=`dot-${i}`;
-    row.appendChild(d);
+    const d=document.getElementById(`dot-${i}`);if(!d)return;
+    d.classList.toggle('active',i===phaseIdx);
+    d.style.background=i<phaseIdx?'#00d97e':i===phaseIdx?meta.color:'var(--border)';
   });
 }
-function updateTimerUI() {
-  if (isDone) return;
-  const ph   = expandedPhases[phaseIdx];
-  const meta = PHASE_META[ph.type];
-  const tl   = Math.max(0, ph.secs - elapsedInPhaseSecs());
-  const te   = totalElapsedSecs();
 
-  document.getElementById('timer-phase-label').textContent = `${meta.label} ${meta.emoji}`;
-  document.getElementById('timer-phase-label').style.color  = meta.color;
-  document.getElementById('timer-countdown').textContent    = formatTime(tl);
-  document.getElementById('timer-countdown').style.color    = meta.color;
-  document.getElementById('timer-elapsed').textContent      = `⏱ ${formatTime(te)}`;
-  document.getElementById('timer-step').textContent         =
-    `שלב ${phaseIdx+1} מתוך ${expandedPhases.length}`;
-
-  // Ring
-  const ring = document.getElementById('timer-ring');
-  ring.style.strokeDashoffset = CIRCLE_C*(1-tl/ph.secs);
-  ring.style.stroke = meta.color;
-
-  // Dots
-  expandedPhases.forEach((_,i)=>{
-    const d = document.getElementById(`dot-${i}`);
-    if (!d) return;
-    d.classList.toggle('active', i===phaseIdx);
-    d.style.background = i<phaseIdx ? '#00d97e' : i===phaseIdx ? meta.color : 'var(--border)';
-  });
-}
-function showDoneUI() {
-  document.getElementById('timer-phase-label').textContent = 'כל הכבוד! 🎉';
-  document.getElementById('timer-phase-label').style.color = 'var(--done)';
-  document.getElementById('timer-countdown').textContent   = '🎉';
-  document.getElementById('timer-countdown').style.color   = 'var(--done)';
-  document.getElementById('timer-ring').style.stroke       = 'var(--done)';
-  document.getElementById('timer-ring').style.strokeDashoffset = 0;
+function showDoneUI(){
+  document.getElementById('timer-phase-label').textContent='כל הכבוד! 🎉';
+  document.getElementById('timer-phase-label').style.color='var(--done)';
+  document.getElementById('timer-countdown').textContent='🎉';
+  document.getElementById('timer-countdown').style.color='var(--done)';
+  document.getElementById('timer-ring').style.stroke='var(--done)';
+  document.getElementById('timer-ring').style.strokeDashoffset=0;
   document.documentElement.style.setProperty('--phase','var(--done)');
-  const btn = document.getElementById('pause-btn');
-  btn.textContent='סיים אימון'; btn.onclick=exitTimer;
-  btn.style.borderColor='var(--done)'; btn.style.color='var(--done)';
-  // Start live done-stats updater
-  updateDoneStats();
-  doneStatsInterval = setInterval(updateDoneStats, 1000);
+  const btn=document.getElementById('pause-btn');
+  btn.textContent='📊 צפה בסיכום';
+  btn.onclick=()=>{stopGPS();goSummary()};
+  btn.style.borderColor='var(--done)';btn.style.color='var(--done)';
+  updateDoneStats();doneStatsInterval=setInterval(updateDoneStats,1000);
+}
+function updateDoneStats(){
+  const stats=document.getElementById('done-stats');stats.style.display='block';
+  const gpsLine=gpsStatus==='active'?`<br>📍 מרחק: <span id="done-dist">${formatDist(totalDistance)}</span> <span style="font-size:11px;color:var(--walk)">▶ ממשיך לספור</span>`:'';
+  stats.innerHTML=`⏱ ${formatTime(finalElapsedSecs)}<br>📋 ${expandedPhases.length} שלבים${gpsLine}`;
 }
 
-let doneStatsInterval = null;
-function updateDoneStats() {
-  const stats = document.getElementById('done-stats');
-  stats.style.display='block';
-  const dist = formatDist(totalDistance);
-  const gpsLine = gpsStatus==='active' ? `<br>📍 מרחק: ${dist} <span style="font-size:11px;color:var(--walk)">(ממשיך לספור)</span>` : '';
-  stats.innerHTML = `זמן כולל: ${formatTime(totalElapsedSecs())}<br>${expandedPhases.length} שלבים${gpsLine}`;
-}
-
-// ═══════════════════════════════════════════
-// BACKGROUND HANDLING
-// ═══════════════════════════════════════════
-document.addEventListener('visibilitychange', ()=>{
-  if (!document.hidden) {
-    // Page came back to foreground
-    document.getElementById('bg-warning').style.display='none';
-    if (isRunning) {
-      window.speechSynthesis?.resume();
-      updateTimerUI(); // catch up UI immediately
-    }
-  } else {
-    // Went to background
-    if (isRunning) {
-      document.getElementById('bg-warning').style.display='block';
-      window.speechSynthesis?.resume(); // keep speech going
-    }
-  }
+// ════════════════════════════════════════════
+// BACKGROUND
+// ════════════════════════════════════════════
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden){document.getElementById('bg-warning').style.display='none';if(isRunning){window.speechSynthesis?.resume();updateTimerUI()}}
+  else if(isRunning){document.getElementById('bg-warning').style.display='block';window.speechSynthesis?.resume()}
 });
 
-// ═══════════════════════════════════════════
-// SETUP UI
-// ═══════════════════════════════════════════
-function renderSetup() { renderPhaseList(); renderRepeat(); renderSummary(); }
+// ════════════════════════════════════════════
+// SUMMARY SCREEN
+// ════════════════════════════════════════════
+function goSummary(){
+  clearInterval(doneStatsInterval);
+  showScreen('screen-summary');
+  document.getElementById('sum-hero').textContent=rand(DONE_HEROES);
+  document.getElementById('sum-time').textContent=formatTime(finalElapsedSecs);
+  document.getElementById('sum-dist').textContent=finalDistance>10?formatDist(finalDistance):'--';
+  document.getElementById('sum-pace').textContent=formatPace(finalDistance,finalElapsedSecs);
 
-function renderPhaseList() {
-  const list = document.getElementById('phase-list');
-  list.innerHTML='';
+  // Legend
+  const legend=document.getElementById('sum-legend');legend.innerHTML='';
+  [...new Set(gpsTrack.map(p=>p.phase))].forEach(ph=>{
+    const meta=PHASE_META[ph]||PHASE_META.run;
+    legend.innerHTML+=`<div class="sum-legend-item">
+      <div class="sum-legend-line" style="background:${meta.color}"></div>${meta.label}
+    </div>`;
+  });
+
+  initSummaryMap();
+}
+
+function initSummaryMap(){
+  if(leafletMap){leafletMap.remove();leafletMap=null}
+  if(!gpsTrack.length){
+    document.getElementById('sum-no-gps').style.display='flex';
+    document.getElementById('summary-map').style.height='120px';
+    document.getElementById('btn-replay').style.opacity='.35';
+    document.getElementById('btn-video').style.opacity='.35';
+    return;
+  }
+  leafletMap=L.map('summary-map',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
+  // Dark CartoDB tiles
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    subdomains:'abcd',maxZoom:19
+  }).addTo(leafletMap);
+  L.control.attribution({prefix:false,position:'bottomleft'}).addTo(leafletMap);
+  L.control.zoom({position:'bottomright'}).addTo(leafletMap);
+
+  drawFullRoute();
+
+  const bounds=L.latLngBounds(gpsTrack.map(p=>[p.lat,p.lng]));
+  leafletMap.fitBounds(bounds,{padding:[40,40]});
+
+  // Start/end markers
+  const first=gpsTrack[0],last=gpsTrack[gpsTrack.length-1];
+  const startIcon=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ${PHASE_META[first.phase]?.color||'#fff'};box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`,iconSize:[14,14],className:''});
+  const endIcon=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:#818cf8;border:3px solid #818cf8;box-shadow:0 0 12px rgba(129,140,248,.6)"></div>`,iconSize:[14,14],className:''});
+  L.marker([first.lat,first.lng],{icon:startIcon}).bindTooltip('התחלה',{direction:'top'}).addTo(leafletMap);
+  L.marker([last.lat,last.lng],{icon:endIcon}).bindTooltip('סיום',{direction:'top'}).addTo(leafletMap);
+}
+
+function drawFullRoute(){
+  if(!leafletMap)return;
+  leafletMap.eachLayer(l=>{if(l instanceof L.Polyline)leafletMap.removeLayer(l)});
+  let seg={phase:gpsTrack[0].phase,pts:[[gpsTrack[0].lat,gpsTrack[0].lng]]};
+  const segs=[seg];
+  for(let i=1;i<gpsTrack.length;i++){
+    const p=gpsTrack[i];
+    if(p.phase===seg.phase)seg.pts.push([p.lat,p.lng]);
+    else{seg={phase:p.phase,pts:[[gpsTrack[i-1].lat,gpsTrack[i-1].lng],[p.lat,p.lng]]};segs.push(seg)}
+  }
+  segs.forEach(s=>{
+    const c=PHASE_META[s.phase]?.color||'#fff';
+    L.polyline(s.pts,{color:c,weight:14,opacity:.18,lineCap:'round'}).addTo(leafletMap);
+    L.polyline(s.pts,{color:c,weight:4,opacity:1,lineCap:'round'}).addTo(leafletMap);
+  });
+}
+
+// ── Replay ──
+function replayRoute(){
+  if(!leafletMap||!gpsTrack.length)return;
+  clearInterval(replayInterval);
+  leafletMap.eachLayer(l=>{if(l instanceof L.Polyline||l.getIcon)leafletMap.removeLayer(l)});
+
+  const first=gpsTrack[0];
+  const startIcon=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ${PHASE_META[first.phase]?.color||'#fff'};box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`,iconSize:[14,14],className:''});
+  L.marker([first.lat,first.lng],{icon:startIcon}).addTo(leafletMap);
+
+  const dotIcon=L.divIcon({html:`<div id="replay-dot" style="width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.4);box-shadow:0 0 20px rgba(255,255,255,.8)"></div>`,iconSize:[18,18],className:''});
+  const dotMarker=L.marker([first.lat,first.lng],{icon:dotIcon}).addTo(leafletMap);
+
+  const drawn={};let idx=0;
+  const SKIP=Math.max(1,Math.floor(gpsTrack.length/100));
+
+  replayInterval=setInterval(()=>{
+    for(let k=0;k<SKIP&&idx<gpsTrack.length;k++,idx++){
+      const p=gpsTrack[idx];const c=PHASE_META[p.phase]?.color||'#fff';
+      if(!drawn[p.phase]){
+        drawn[p.phase]={
+          glow:L.polyline([],{color:c,weight:14,opacity:.18,lineCap:'round'}).addTo(leafletMap),
+          line:L.polyline([],{color:c,weight:4,opacity:1,lineCap:'round'}).addTo(leafletMap),
+        };
+      }
+      drawn[p.phase].glow.addLatLng([p.lat,p.lng]);
+      drawn[p.phase].line.addLatLng([p.lat,p.lng]);
+      dotMarker.setLatLng([p.lat,p.lng]);
+    }
+    if(idx>=gpsTrack.length){
+      clearInterval(replayInterval);
+      const last=gpsTrack[gpsTrack.length-1];
+      const endIcon=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:#818cf8;border:3px solid #818cf8;box-shadow:0 0 12px rgba(129,140,248,.6)"></div>`,iconSize:[14,14],className:''});
+      L.marker([last.lat,last.lng],{icon:endIcon}).bindTooltip('סיום',{direction:'top'}).addTo(leafletMap);
+    }
+  },80);
+}
+
+// ════════════════════════════════════════════
+// VIDEO EXPORT
+// ════════════════════════════════════════════
+function latLngToWorld(lat,lng,z){
+  const n=2**z,lr=lat*Math.PI/180;
+  return{x:(lng+180)/360*n,y:(1-Math.log(Math.tan(lr)+1/Math.cos(lr))/Math.PI)/2*n};
+}
+function worldToCanvas(wx,wy,ox,oy,scale){
+  return{x:(wx-ox)*scale,y:(wy-oy)*scale};
+}
+function getTrackBounds(){
+  let nla=90,xla=-90,nlg=180,xlg=-180;
+  gpsTrack.forEach(p=>{nla=Math.min(nla,p.lat);xla=Math.max(xla,p.lat);nlg=Math.min(nlg,p.lng);xlg=Math.max(xlg,p.lng)});
+  return{minLat:nla,maxLat:xla,minLng:nlg,maxLng:xlg};
+}
+function chooseBestZoom(b,W,H){
+  for(let z=17;z>=10;z--){
+    const nw=latLngToWorld(b.maxLat,b.minLng,z),se=latLngToWorld(b.minLat,b.maxLng,z);
+    if((se.x-nw.x)*256<W*.8&&(se.y-nw.y)*256<H*.8)return z;
+  }
+  return 12;
+}
+
+async function loadTile(z,x,y){
+  return new Promise(res=>{
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=()=>res(img);img.onerror=()=>res(null);
+    img.src=`https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png`;
+  });
+}
+
+async function startVideoExport(){
+  if(!gpsTrack.length){alert('אין נתוני GPS לסרטון.');return}
+  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){
+    alert('הורדת סרטון אינה נתמכת בדפדפן זה.\nנסה Safari 15+ או Chrome.');return;
+  }
+
+  const overlay=document.getElementById('video-overlay');
+  const canvas=document.getElementById('video-canvas');
+  const status=document.getElementById('video-status');
+  const progBar=document.getElementById('vid-progress-bar');
+  const progFill=document.getElementById('vid-progress-fill');
+  overlay.style.display='flex';progBar.style.display='block';
+  status.textContent='⏳ טוען מפה...';progFill.style.width='0%';
+
+  const W=390,H=700,HEADER=110,FOOTER=70,MAP_Y=HEADER,MAP_H=H-HEADER-FOOTER;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  const bounds=getTrackBounds();
+  const pad=0.0003;
+  const padBounds={minLat:bounds.minLat-pad,maxLat:bounds.maxLat+pad,minLng:bounds.minLng-pad,maxLng:bounds.maxLng+pad};
+  const zoom=chooseBestZoom(padBounds,W,MAP_H);
+
+  const nw=latLngToWorld(padBounds.maxLat,padBounds.minLng,zoom);
+  const se=latLngToWorld(padBounds.minLat,padBounds.maxLng,zoom);
+  const worldW=se.x-nw.x,worldH=se.y-nw.y;
+  const scale=Math.min(W/worldW,MAP_H/worldH)/256;
+  const ox=nw.x-(W/scale/256-worldW)/2;
+  const oy=nw.y-(MAP_H/scale/256-worldH)/2;
+
+  function toPx(lat,lng){const w=latLngToWorld(lat,lng,zoom);return{x:(w.x-ox)*256*scale,y:(w.y-oy)*256*scale+MAP_Y}}
+
+  // Tile grid
+  const txMin=Math.floor(ox),tyMin=Math.floor(oy);
+  const txMax=Math.ceil(ox+W/(256*scale)),tyMax=Math.ceil(oy+MAP_H/(256*scale));
+  let tilesDone=0;const tilesTotal=(txMax-txMin+1)*(tyMax-tyMin+1);
+  const tileCache={};
+  await Promise.all(
+    Array.from({length:tyMax-tyMin+1},(_,ty)=>
+      Array.from({length:txMax-txMin+1},(_,tx)=>{
+        const xx=txMin+tx,yy=tyMin+ty;
+        if(xx<0||yy<0||xx>=2**zoom||yy>=2**zoom)return Promise.resolve();
+        return loadTile(zoom,xx,yy).then(img=>{
+          tileCache[`${xx}_${yy}`]=img;
+          tilesDone++;progFill.style.width=`${(tilesDone/tilesTotal*50)|0}%`;
+        });
+      })
+    ).flat()
+  );
+  status.textContent='🎬 מקליט...';
+
+  function drawMapLayer(){
+    ctx.save();ctx.beginPath();ctx.rect(0,MAP_Y,W,MAP_H);ctx.clip();
+    ctx.fillStyle='#080810';ctx.fillRect(0,MAP_Y,W,MAP_H);
+    for(let ty=tyMin;ty<=tyMax;ty++){
+      for(let tx=txMin;tx<=txMax;tx++){
+        const img=tileCache[`${tx}_${ty}`];if(!img)continue;
+        const x=(tx-ox)*256*scale,y=(ty-oy)*256*scale+MAP_Y;
+        ctx.drawImage(img,x,y,256*scale,256*scale);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawTrackUp(upTo){
+    if(upTo<1)return;
+    ctx.save();ctx.beginPath();ctx.rect(0,MAP_Y,W,MAP_H);ctx.clip();
+    ctx.lineCap='round';ctx.lineJoin='round';
+    for(let i=1;i<=upTo;i++){
+      const a=toPx(gpsTrack[i-1].lat,gpsTrack[i-1].lng);
+      const b=toPx(gpsTrack[i].lat,gpsTrack[i].lng);
+      const c=PHASE_META[gpsTrack[i].phase]?.color||'#fff';
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=c;ctx.lineWidth=14;ctx.globalAlpha=.18;ctx.shadowBlur=0;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=c;ctx.lineWidth=4;ctx.globalAlpha=1;ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawDot(ptIdx){
+    if(ptIdx>=gpsTrack.length)return;
+    const p=toPx(gpsTrack[ptIdx].lat,gpsTrack[ptIdx].lng);
+    ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=20;ctx.globalAlpha=1;ctx.fill();ctx.restore();
+  }
+
+  function drawStartEndMarkers(upTo){
+    // Start
+    const s=toPx(gpsTrack[0].lat,gpsTrack[0].lng);
+    ctx.save();ctx.beginPath();ctx.arc(s.x,s.y,7,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.globalAlpha=1;ctx.fill();ctx.restore();
+    // End (only if animation complete)
+    if(upTo>=gpsTrack.length-1){
+      const e=toPx(gpsTrack[gpsTrack.length-1].lat,gpsTrack[gpsTrack.length-1].lng);
+      ctx.save();ctx.beginPath();ctx.arc(e.x,e.y,7,0,Math.PI*2);
+      ctx.fillStyle='#818cf8';ctx.shadowColor='#818cf8';ctx.shadowBlur=16;ctx.globalAlpha=1;ctx.fill();ctx.restore();
+    }
+  }
+
+  function drawHeader(progFrac){
+    ctx.fillStyle='rgba(8,8,16,0.95)';ctx.fillRect(0,0,W,HEADER);
+    // Gradient fade into map
+    const gr=ctx.createLinearGradient(0,HEADER-20,0,HEADER+20);
+    gr.addColorStop(0,'rgba(8,8,16,.95)');gr.addColorStop(1,'transparent');
+    ctx.fillStyle=gr;ctx.fillRect(0,HEADER-20,W,40);
+
+    ctx.direction='rtl';ctx.textAlign='right';
+    ctx.font='bold 14px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.9)';
+    ctx.fillText('ריצה חכמה 🏃',W-20,34);
+    ctx.font='900 30px Heebo,sans-serif';ctx.fillStyle='#eef2ff';
+    ctx.fillText(formatTime(finalElapsedSecs),W-20,72);
+    const curDist=finalDistance*progFrac;
+    ctx.font='700 16px Heebo,sans-serif';ctx.fillStyle='#00d97e';
+    ctx.fillText(formatDist(curDist),W-20,96);
+    // Date (LTR)
+    ctx.direction='ltr';ctx.textAlign='left';ctx.font='500 12px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.8)';
+    ctx.fillText(new Date().toLocaleDateString('he-IL'),20,42);
+  }
+
+  function drawFooter(progFrac){
+    ctx.fillStyle='rgba(8,8,16,0.95)';ctx.fillRect(0,H-FOOTER,W,FOOTER);
+    const gr=ctx.createLinearGradient(0,H-FOOTER-20,0,H-FOOTER+10);
+    gr.addColorStop(0,'transparent');gr.addColorStop(1,'rgba(8,8,16,.95)');
+    ctx.fillStyle=gr;ctx.fillRect(0,H-FOOTER-20,W,30);
+    // Progress bar
+    const bx=20,by=H-FOOTER+18,bw=W-40,bh=5;
+    ctx.fillStyle='rgba(255,255,255,.08)';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,3);ctx.fill();
+    if(progFrac>0){
+      ctx.fillStyle='#818cf8';ctx.shadowColor='#818cf8';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.roundRect(bx,by,bw*progFrac,bh,3);ctx.fill();ctx.shadowBlur=0;
+    }
+    // Attribution
+    ctx.direction='ltr';ctx.textAlign='left';ctx.font='9px sans-serif';ctx.fillStyle='rgba(74,82,112,.6)';
+    ctx.fillText('© CartoDB © OpenStreetMap contributors',20,H-FOOTER+44);
+  }
+
+  // Recording setup
+  let mimeType='video/webm;codecs=vp9';
+  if(!MediaRecorder.isTypeSupported(mimeType))mimeType='video/webm';
+  const stream=canvas.captureStream(30);
+  const recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:4000000});
+  const chunks=[];
+  recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+  recorder.onstop=()=>{
+    const blob=new Blob(chunks,{type:recorder.mimeType});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='ריצה.webm';a.click();
+    URL.revokeObjectURL(url);
+    status.textContent='✅ הסרטון הורד!';progFill.style.width='100%';
+    setTimeout(()=>closeVideoOverlay(),2500);
+  };
+  recorder.start(100);
+
+  // Animation
+  const FPS=30,DURATION=16;
+  const totalFrames=FPS*DURATION;
+  let frame=0,ptIdx=0;
+  const ptsPerFrame=Math.max(1,gpsTrack.length/totalFrames);
+
+  function renderFrame(){
+    const progFrac=Math.min(1,ptIdx/Math.max(1,gpsTrack.length-1));
+    drawMapLayer();
+    drawTrackUp(Math.round(ptIdx));
+    if(ptIdx<gpsTrack.length-1)drawDot(Math.round(ptIdx));
+    drawStartEndMarkers(Math.round(ptIdx));
+    drawHeader(progFrac);drawFooter(progFrac);
+    frame++;ptIdx=Math.min(gpsTrack.length-1,ptIdx+ptsPerFrame);
+    progFill.style.width=`${50+frame/totalFrames*45|0}%`;
+
+    if(frame<totalFrames&&ptIdx<gpsTrack.length-1){
+      requestAnimationFrame(renderFrame);
+    }else{
+      // Full route final hold
+      let hold=0;const hi=setInterval(()=>{
+        drawMapLayer();drawTrackUp(gpsTrack.length-1);
+        drawStartEndMarkers(gpsTrack.length-1);drawHeader(1);drawFooter(1);
+        if(++hold>=90){clearInterval(hi);recorder.stop()}
+      },33);
+    }
+  }
+  requestAnimationFrame(renderFrame);
+}
+
+function closeVideoOverlay(){document.getElementById('video-overlay').style.display='none'}
+
+// ════════════════════════════════════════════
+// SETUP UI
+// ════════════════════════════════════════════
+function renderSetup(){renderPhaseList();renderRepeat();renderSummaryBox()}
+function renderPhaseList(){
+  const list=document.getElementById('phase-list');list.innerHTML='';
   phases.forEach((ph,i)=>{
-    const meta = PHASE_META[ph.type];
-    const row  = document.createElement('div');
-    row.className='phase-row';
-    row.style.setProperty('--phase-row-color', meta.color);
-    row.innerHTML=`
-      <button class="phase-type-btn" onclick="cyclePhaseType(${i})"
-        style="border-color:${meta.color};color:${meta.color}">
-        <span>${meta.emoji}</span><span>${meta.label}</span>
-      </button>
-      <div class="phase-min-wrap">
-        <input class="phase-min-input" type="number" min="1" max="180"
-          value="${Math.floor(ph.secs/60)}"
-          onchange="updatePhaseSecs(${i},this.value)"
-          oninput="updatePhaseSecs(${i},this.value)">
-        <span class="phase-min-label">דק׳</span>
-      </div>
-      <div class="phase-move-btns">
-        <button class="phase-move-btn" onclick="movePhase(${i},-1)" ${i===0?'disabled':''}>↑</button>
-        <button class="phase-move-btn" onclick="movePhase(${i},1)" ${i===phases.length-1?'disabled':''}>↓</button>
-      </div>
-      <button class="phase-del-btn" onclick="removePhase(${i})">✕</button>
-    `;
+    const meta=PHASE_META[ph.type];
+    const row=document.createElement('div');row.className='phase-row';row.style.setProperty('--phase-row-color',meta.color);
+    row.innerHTML=`<button class="phase-type-btn" onclick="cyclePhaseType(${i})" style="border-color:${meta.color};color:${meta.color}"><span>${meta.emoji}</span><span>${meta.label}</span></button>
+      <div class="phase-min-wrap"><input class="phase-min-input" type="number" min="1" max="180" value="${Math.floor(ph.secs/60)}" onchange="updatePhaseSecs(${i},this.value)" oninput="updatePhaseSecs(${i},this.value)"><span class="phase-min-label">דק׳</span></div>
+      <div class="phase-move-btns"><button class="phase-move-btn" onclick="movePhase(${i},-1)" ${i===0?'disabled':''}>↑</button><button class="phase-move-btn" onclick="movePhase(${i},1)" ${i===phases.length-1?'disabled':''}>↓</button></div>
+      <button class="phase-del-btn" onclick="removePhase(${i})">✕</button>`;
     list.appendChild(row);
   });
 }
-function renderAddRow() {
-  const row = document.getElementById('add-row');
-  row.innerHTML='';
-  PHASE_TYPES.forEach(type=>{
-    const meta=PHASE_META[type];
-    const btn=document.createElement('button');
-    btn.className='add-btn'; btn.style.borderColor=meta.color; btn.style.color=meta.color;
-    btn.textContent=`+ ${meta.label}`; btn.onclick=()=>addPhase(type);
-    row.appendChild(btn);
-  });
+function renderAddRow(){
+  const row=document.getElementById('add-row');row.innerHTML='';
+  PHASE_TYPES.forEach(type=>{const meta=PHASE_META[type];const btn=document.createElement('button');btn.className='add-btn';btn.style.borderColor=meta.color;btn.style.color=meta.color;btn.textContent=`+ ${meta.label}`;btn.onclick=()=>addPhase(type);row.appendChild(btn)});
 }
-function renderRepeat() {
-  document.getElementById('repeat-card').style.display = phases.length>1?'block':'none';
-  document.getElementById('repeat-display').textContent = repeat;
-  document.getElementById('repeat-label').textContent   = repeat===1?'סבב אחד':`${repeat} סבבים`;
+function renderRepeat(){
+  document.getElementById('repeat-card').style.display=phases.length>1?'block':'none';
+  document.getElementById('repeat-display').textContent=repeat;
+  document.getElementById('repeat-label').textContent=repeat===1?'סבב אחד':`${repeat} סבבים`;
 }
-function renderSummary() {
-  const box = document.getElementById('summary-box');
-  const restSecs = phases.slice(1).reduce((s,p)=>s+p.secs,0);
-  const totalMin = Math.round((phases[0].secs + restSecs*repeat)/60);
-  if (totalMin<=0) { box.style.display='none'; return; }
+function renderSummaryBox(){
+  const box=document.getElementById('summary-box');
+  const rs=phases.slice(1).reduce((s,p)=>s+p.secs,0);
+  const m=Math.round((phases[0].secs+rs*repeat)/60);
+  if(m<=0){box.style.display='none';return}
   box.style.display='block';
-  document.getElementById('summary-main').textContent = `סה"כ ~${totalMin} דקות`;
-  document.getElementById('summary-sub').textContent  =
-    `חימום + ${repeat} × (${phases.slice(1).map(p=>p.secs/60+' דק׳').join(' + ')})`;
+  document.getElementById('summary-main').textContent=`סה"כ ~${m} דקות`;
+  document.getElementById('summary-sub').textContent=`חימום + ${repeat} × (${phases.slice(1).map(p=>p.secs/60+' דק׳').join(' + ')})`;
 }
+function cyclePhaseType(i){const idx=PHASE_TYPES.indexOf(phases[i].type);phases[i]={...phases[i],type:PHASE_TYPES[(idx+1)%PHASE_TYPES.length]};renderSetup()}
+function updatePhaseSecs(i,v){phases[i]={...phases[i],secs:Math.max(1,parseInt(v)||1)*60};renderSummaryBox()}
+function addPhase(type){phases.push({id:nextId++,type,secs:60});renderSetup()}
+function removePhase(i){if(phases.length<=1)return;phases.splice(i,1);renderSetup()}
+function movePhase(i,dir){const j=i+dir;if(j<0||j>=phases.length)return;[phases[i],phases[j]]=[phases[j],phases[i]];renderSetup()}
+function changeRepeat(d){repeat=Math.max(1,Math.min(20,repeat+d));renderRepeat();renderSummaryBox()}
+function setTargetUnit(u){targetUnit=u;document.getElementById('target-unit-m').className='target-unit-btn'+(u==='m'?' active':'');document.getElementById('target-unit-km').className='target-unit-btn'+(u==='km'?' active':'');updateTargetLabel()}
+function updateTargetLabel(){const v=parseFloat(document.getElementById('target-input').value)||0;targetMeters=targetUnit==='km'?v*1000:v;document.getElementById('target-label').textContent=targetMeters>0?`יעד: ${formatDist(targetMeters)}`:''}
+function clearTarget(){document.getElementById('target-input').value='';targetMeters=0;document.getElementById('target-label').textContent=''}
 
-function cyclePhaseType(i) {
-  const idx=PHASE_TYPES.indexOf(phases[i].type);
-  phases[i]={...phases[i],type:PHASE_TYPES[(idx+1)%PHASE_TYPES.length]};
-  renderSetup();
-}
-function updatePhaseSecs(i,v) {
-  phases[i]={...phases[i],secs:Math.max(1,parseInt(v)||1)*60}; renderSummary();
-}
-function addPhase(type)    { phases.push({id:nextId++,type,secs:60}); renderSetup(); }
-function removePhase(i)    { if(phases.length<=1)return; phases.splice(i,1); renderSetup(); }
-function movePhase(i,dir)  {
-  const j=i+dir; if(j<0||j>=phases.length)return;
-  [phases[i],phases[j]]=[phases[j],phases[i]]; renderSetup();
-}
-function changeRepeat(d)   { repeat=Math.max(1,Math.min(20,repeat+d)); renderRepeat(); renderSummary(); }
-
-// Target distance
-function setTargetUnit(unit) {
-  targetUnit = unit;
-  document.getElementById('target-unit-m').className  = 'target-unit-btn'+(unit==='m' ?' active':'');
-  document.getElementById('target-unit-km').className = 'target-unit-btn'+(unit==='km'?' active':'');
-  updateTargetLabel();
-}
-function updateTargetLabel() {
-  const val = parseFloat(document.getElementById('target-input').value) || 0;
-  targetMeters = targetUnit==='km' ? val*1000 : val;
-  const lbl = document.getElementById('target-label');
-  lbl.textContent = targetMeters>0 ? `יעד: ${formatDist(targetMeters)}` : '';
-}
-function clearTarget() {
-  document.getElementById('target-input').value='';
-  targetMeters=0;
-  document.getElementById('target-label').textContent='';
-}
-
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // BANK UI
-// ═══════════════════════════════════════════
-function renderBank() {
-  const tabsEl = document.getElementById('bank-tabs');
-  tabsEl.innerHTML='';
-  PHASE_TYPES.forEach(type=>{
-    const meta=PHASE_META[type];
-    const tab=document.createElement('button');
-    tab.className='bank-tab'+(type===activeBankTab?' active':'');
-    tab.textContent=`${meta.emoji} ${meta.label}`;
-    tab.style.setProperty('--phase', meta.color);
-    tab.onclick=()=>{ activeBankTab=type; renderBank(); };
-    tabsEl.appendChild(tab);
-  });
-  const meta = PHASE_META[activeBankTab];
-  document.getElementById('bank-hint').textContent =
-    `הודעות אלו יושמעו תוך כדי ${meta.label}, עם מידע על זמן שעבר ונשאר.`;
-  const msgs=bank[activeBankTab]||[];
-  const msgsEl=document.getElementById('bank-msgs');
-  msgsEl.innerHTML='';
-  if (!msgs.length)
-    msgsEl.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:20px;font-size:14px">אין הודעות עדיין</p>';
-  msgs.forEach((msg,i)=>{
-    const row=document.createElement('div'); row.className='msg-row';
-    row.innerHTML=`<span class="msg-text">${msg}</span><button class="msg-del" onclick="deleteBankMsg(${i})">✕</button>`;
-    msgsEl.appendChild(row);
-  });
-  document.getElementById('bank-add-btn').style.background = meta.color;
+// ════════════════════════════════════════════
+function renderBank(){
+  const tabsEl=document.getElementById('bank-tabs');tabsEl.innerHTML='';
+  PHASE_TYPES.forEach(type=>{const meta=PHASE_META[type];const tab=document.createElement('button');tab.className='bank-tab'+(type===activeBankTab?' active':'');tab.textContent=`${meta.emoji} ${meta.label}`;tab.style.setProperty('--phase',meta.color);tab.onclick=()=>{activeBankTab=type;renderBank()};tabsEl.appendChild(tab)});
+  document.getElementById('bank-hint').textContent=`הודעות אלו יושמעו תוך כדי ${PHASE_META[activeBankTab].label}, עם מידע על זמן שעבר ונשאר.`;
+  const msgs=bank[activeBankTab]||[],msgsEl=document.getElementById('bank-msgs');msgsEl.innerHTML='';
+  if(!msgs.length)msgsEl.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:20px;font-size:14px">אין הודעות עדיין</p>';
+  msgs.forEach((msg,i)=>{const row=document.createElement('div');row.className='msg-row';row.innerHTML=`<span class="msg-text">${msg}</span><button class="msg-del" onclick="deleteBankMsg(${i})">✕</button>`;msgsEl.appendChild(row)});
+  document.getElementById('bank-add-btn').style.background=PHASE_META[activeBankTab].color;
 }
-function addBankMsg() {
-  const input=document.getElementById('bank-input');
-  const text=input.value.trim(); if(!text)return;
-  if (!bank[activeBankTab]) bank[activeBankTab]=[];
-  bank[activeBankTab].push(text); saveBank();
-  input.value=''; document.getElementById('bank-add-btn').disabled=true;
-  renderBank();
-}
-function deleteBankMsg(i) { bank[activeBankTab].splice(i,1); saveBank(); renderBank(); }
-function resetBank() {
-  if (confirm('לאפס את כל ההודעות לברירת המחדל?')) {
-    bank=JSON.parse(JSON.stringify(DEFAULT_BANK)); saveBank(); renderBank();
-  }
-}
+function addBankMsg(){const input=document.getElementById('bank-input'),text=input.value.trim();if(!text)return;if(!bank[activeBankTab])bank[activeBankTab]=[];bank[activeBankTab].push(text);saveBank();input.value='';document.getElementById('bank-add-btn').disabled=true;renderBank()}
+function deleteBankMsg(i){bank[activeBankTab].splice(i,1);saveBank();renderBank()}
+function resetBank(){if(confirm('לאפס?')){bank=JSON.parse(JSON.stringify(DEFAULT_BANK));saveBank();renderBank()}}
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function goSetup() { showScreen('screen-setup'); renderSetup(); }
-function goTimer() { showScreen('screen-timer'); }
-function goBank()  { showScreen('screen-bank');  renderBank(); }
+// ════════════════════════════════════════════
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function goSetup(){clearInterval(replayInterval);showScreen('screen-setup');renderSetup()}
+function goTimer(){showScreen('screen-timer')}
+function goBank(){showScreen('screen-bank');renderBank()}
 
-// ═══════════════════════════════════════════
-// PWA MANIFEST
-// ═══════════════════════════════════════════
-function injectManifest() {
-  const m={name:'ריצה חכמה',short_name:'ריצה',start_url:'.',display:'standalone',
-    background_color:'#080810',theme_color:'#080810',orientation:'portrait',
-    icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",
-      sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
-  const url=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
-  const link=document.createElement('link'); link.rel='manifest'; link.href=url;
-  document.head.appendChild(link);
-}
+// ════════════════════════════════════════════
+// PWA + INIT
+// ════════════════════════════════════════════
+(()=>{
+  const m={name:'ריצה חכמה',short_name:'ריצה',start_url:'.',display:'standalone',background_color:'#080810',theme_color:'#080810',orientation:'portrait',icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",sizes:'512x512',type:'image/svg+xml'}]};
+  const link=document.createElement('link');link.rel='manifest';link.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));document.head.appendChild(link);
+})();
 
-// ═══════════════════════════════════════════
-// INSTALL HINT
-// ═══════════════════════════════════════════
-function showInstallHint() {
-  const isStandalone = window.navigator.standalone===true||
-    window.matchMedia('(display-mode: standalone)').matches;
-  if (!isStandalone)
-    document.getElementById('install-hint').textContent=
-      '💡 לשמירה על מסך הבית: לחץ שתף ← "הוסף למסך הבית"';
-}
+document.getElementById('bank-input').addEventListener('input',function(){document.getElementById('bank-add-btn').disabled=!this.value.trim()});
+document.getElementById('bank-input').addEventListener('keydown',function(e){if(e.key==='Enter')addBankMsg()});
 
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
-document.getElementById('bank-input').addEventListener('input',function(){
-  document.getElementById('bank-add-btn').disabled=!this.value.trim();
-});
-document.getElementById('bank-input').addEventListener('keydown',function(e){
-  if(e.key==='Enter')addBankMsg();
-});
-
-loadBank(); loadWorkout(); injectManifest();
-renderSetup(); renderAddRow(); showInstallHint();
-
-// Restore target input UI
-if (targetMeters>0) {
-  document.getElementById('target-input').value = targetUnit==='km'?targetMeters/1000:targetMeters;
-  setTargetUnit(targetUnit);
-  updateTargetLabel();
-}
+loadBank();loadWorkout();renderSetup();renderAddRow();
+if(targetMeters>0){document.getElementById('target-input').value=targetUnit==='km'?targetMeters/1000:targetMeters;setTargetUnit(targetUnit);updateTargetLabel()}
+const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+if(!isStandalone)document.getElementById('install-hint').textContent='💡 לחץ שתף ← "הוסף למסך הבית"';
 </script>
 </body>
 </html>
