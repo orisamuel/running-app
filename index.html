@@ -1,13 +1,14 @@
 <!DOCTYPE html>
+
 <html dir="rtl" lang="he">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ריצה חכמה">
+<meta name="apple-mobile-web-app-title" content="אוריצה">
 <meta name="theme-color" content="#080810">
-<title>ריצה חכמה 🏃</title>
+<title>אוריצה 🏃</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
@@ -71,115 +72,117 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 /* ── TIMER ── */
 #screen-timer{align-items:center;justify-content:center;padding:0 24px}
 .timer-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;padding-top:max(16px,env(safe-area-inset-top))}
-.timer-exit{background:none;border:none;cursor:pointer;color:var(--muted);font-family:'Heebo',sans-serif;font-size:15px;padding:6px}
-.timer-elapsed{color:var(--muted);font-size:15px;font-weight:600}
-.timer-step{color:var(--muted);font-size:15px;font-weight:600;margin-bottom:10px}
-.timer-phase-label{font-size:26px;font-weight:800;margin-bottom:24px;text-align:center;transition:color .8s;color:var(--phase)}
+.timer-exit{background:none;border:none;cursor:pointer;color:var(–muted);font-family:‘Heebo’,sans-serif;font-size:15px;padding:6px}
+.timer-elapsed{color:var(–muted);font-size:15px;font-weight:600}
+.timer-step{color:var(–muted);font-size:15px;font-weight:600;margin-bottom:10px}
+.timer-phase-label{font-size:26px;font-weight:800;margin-bottom:24px;text-align:center;transition:color .8s;color:var(–phase)}
 .timer-circle-wrap{position:relative;width:260px;height:260px;margin-bottom:18px;flex-shrink:0}
 .timer-svg{width:260px;height:260px;transform:rotate(-90deg)}
-.timer-track{fill:none;stroke:var(--border);stroke-width:7}
-.timer-ring{fill:none;stroke-width:7;stroke-linecap:round;stroke:var(--phase);stroke-dasharray:659.7;stroke-dashoffset:0;transition:stroke-dashoffset .6s linear,stroke .8s ease}
+.timer-track{fill:none;stroke:var(–border);stroke-width:7}
+.timer-ring{fill:none;stroke-width:7;stroke-linecap:round;stroke:var(–phase);stroke-dasharray:659.7;stroke-dashoffset:0;transition:stroke-dashoffset .6s linear,stroke .8s ease}
 .timer-text-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.timer-countdown{font-size:58px;font-weight:900;letter-spacing:-2px;font-variant-numeric:tabular-nums;color:var(--phase);transition:color .8s;line-height:1}
+.timer-countdown{font-size:58px;font-weight:900;letter-spacing:-2px;font-variant-numeric:tabular-nums;color:var(–phase);transition:color .8s;line-height:1}
 .distance-badge{text-align:center;margin-bottom:6px}
 .distance-val{font-size:19px;font-weight:700}
-.distance-lbl{font-size:11px;color:var(--muted);margin-top:2px}
-.target-badge{text-align:center;margin-bottom:10px;font-size:13px;color:var(--muted);min-height:18px}
+.distance-lbl{font-size:11px;color:var(–muted);margin-top:2px}
+.target-badge{text-align:center;margin-bottom:10px;font-size:13px;color:var(–muted);min-height:18px}
 .dots-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:24px;max-width:300px}
 .dot{height:10px;border-radius:5px;transition:background .4s,width .3s;width:10px}
 .dot.active{width:18px}
-.pause-btn{border:2px solid var(--phase);border-radius:14px;background:none;padding:16px 52px;font-family:'Heebo',sans-serif;font-size:19px;font-weight:700;color:var(--phase);cursor:pointer;transition:border-color .8s,color .8s}
+.pause-btn{border:2px solid var(–phase);border-radius:14px;background:none;padding:16px 52px;font-family:‘Heebo’,sans-serif;font-size:19px;font-weight:700;color:var(–phase);cursor:pointer;transition:border-color .8s,color .8s}
 .pause-btn:active{opacity:.7}
-.done-stats{color:var(--muted);font-size:14px;margin-top:16px;text-align:center;line-height:2;display:none}
-#bg-warning{position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;text-align:center;padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));z-index:100;display:none}
+.done-stats{color:var(–muted);font-size:14px;margin-top:16px;text-align:center;line-height:2;display:none}
+#bg-warning{position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-family:‘Heebo’,sans-serif;font-size:13px;font-weight:700;text-align:center;padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));z-index:100;display:none}
 
 /* ── SUMMARY ── */
-#screen-summary{background:var(--bg);overflow:hidden}
+#screen-summary{background:var(–bg);overflow:hidden}
 .sum-header{
-  flex-shrink:0;padding:0 20px 0;
-  padding-top:max(16px,env(safe-area-inset-top));
+flex-shrink:0;padding:0 20px 0;
+padding-top:max(16px,env(safe-area-inset-top));
 }
-.sum-tagline{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--done);text-transform:uppercase;margin-bottom:4px;opacity:.8}
+.sum-tagline{font-size:11px;font-weight:700;letter-spacing:3px;color:var(–done);text-transform:uppercase;margin-bottom:4px;opacity:.8}
 .sum-hero{font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:14px}
 .sum-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 /* Stat pills */
 .sum-stats{display:flex;gap:10px;padding:0 20px 12px;flex-shrink:0}
 .sum-stat{
-  flex:1;background:var(--card);border:1px solid var(--border);
-  border-radius:16px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;
+flex:1;background:var(–card);border:1px solid var(–border);
+border-radius:16px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;
 }
-.sum-stat::before{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none}
+.sum-stat::before{content:’’;position:absolute;inset:0;opacity:.07;pointer-events:none}
 .sum-stat.s-time::before{background:linear-gradient(135deg,#fff,transparent)}
-.sum-stat.s-dist::before{background:linear-gradient(135deg,var(--walk),transparent)}
-.sum-stat.s-pace::before{background:linear-gradient(135deg,var(--done),transparent)}
+.sum-stat.s-dist::before{background:linear-gradient(135deg,var(–walk),transparent)}
+.sum-stat.s-pace::before{background:linear-gradient(135deg,var(–done),transparent)}
 .sum-stat-val{font-size:21px;font-weight:900;letter-spacing:-.5px;line-height:1.1}
-.sum-stat-lbl{font-size:9px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.sum-stat-lbl{font-size:9px;color:var(–muted);margin-top:4px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
 
 /* Map */
 .sum-map-wrap{
-  margin:0 16px 12px;border-radius:20px;overflow:hidden;
-  border:1px solid var(--border);position:relative;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
+margin:0 16px 12px;border-radius:20px;overflow:hidden;
+border:1px solid var(–border);position:relative;
+box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
-#summary-map{height:320px;background:var(--card)}
+#summary-map{height:320px;background:var(–card)}
 .sum-map-offline{
-  height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;color:var(--muted);font-size:14px;
+height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:8px;color:var(–muted);font-size:14px;
 }
 /* Legend */
 .sum-legend{display:flex;gap:16px;justify-content:center;flex-direction:row-reverse;padding:0 20px 12px}
-.sum-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
+.sum-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(–muted);font-weight:600}
 .sum-legend-line{width:24px;height:3px;border-radius:2px}
 /* Action buttons */
 .sum-actions{display:flex;flex-direction:column;gap:10px;padding:0 16px;padding-bottom:max(24px,env(safe-area-inset-bottom))}
 .sum-btn{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:16px;border-radius:16px;border:none;cursor:pointer;
-  font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;
-  transition:transform .12s,opacity .12s;
+display:flex;align-items:center;justify-content:center;gap:10px;
+padding:16px;border-radius:16px;border:none;cursor:pointer;
+font-family:‘Heebo’,sans-serif;font-size:16px;font-weight:800;
+transition:transform .12s,opacity .12s;
 }
 .sum-btn:active{transform:scale(.97);opacity:.85}
-.sum-btn-replay{background:rgba(129,140,248,.12);border:1.5px solid rgba(129,140,248,.35);color:var(--done)}
-.sum-btn-video{background:rgba(0,217,126,.1);border:1.5px solid rgba(0,217,126,.3);color:var(--walk)}
-.sum-btn-new{background:var(--run);color:#fff}
+.sum-btn-replay{background:rgba(129,140,248,.12);border:1.5px solid rgba(129,140,248,.35);color:var(–done)}
+.sum-btn-video{background:rgba(0,217,126,.1);border:1.5px solid rgba(0,217,126,.3);color:var(–walk)}
+.sum-btn-new{background:var(–run);color:#fff}
 /* Overlay */
 #video-overlay{position:fixed;inset:0;background:rgba(8,8,16,.97);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px}
 #video-canvas{border-radius:14px;max-width:100%;box-shadow:0 0 60px rgba(0,0,0,.9)}
 .vid-status-row{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
-#video-status{color:var(--text);font-size:15px;font-weight:700;text-align:center}
-.vid-progress-bar{width:240px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;display:none}
-.vid-progress-fill{height:100%;background:var(--walk);border-radius:2px;width:0%;transition:width .3s}
-#video-close{background:none;border:1.5px solid var(--border);border-radius:10px;padding:10px 28px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+#video-status{color:var(–text);font-size:15px;font-weight:700;text-align:center}
+.vid-progress-bar{width:240px;height:4px;background:var(–border);border-radius:2px;overflow:hidden;display:none}
+.vid-progress-fill{height:100%;background:var(–walk);border-radius:2px;width:0%;transition:width .3s}
+#video-close{background:none;border:1.5px solid var(–border);border-radius:10px;padding:10px 28px;color:var(–muted);font-family:‘Heebo’,sans-serif;font-size:14px;font-weight:600;cursor:pointer}
 
 /* BANK */
 .bank-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0;padding-top:max(12px,env(safe-area-inset-top))}
 .bank-title{font-size:20px;font-weight:800}
-.bank-tabs{display:flex;flex-direction:row-reverse;border-bottom:1px solid var(--border);margin-bottom:8px;flex-shrink:0}
-.bank-tab{flex:1;padding:10px 0;text-align:center;background:none;border:none;cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:var(--muted);border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px}
-.bank-tab.active{color:var(--phase);border-bottom-color:var(--phase)}
+.bank-tabs{display:flex;flex-direction:row-reverse;border-bottom:1px solid var(–border);margin-bottom:8px;flex-shrink:0}
+.bank-tab{flex:1;padding:10px 0;text-align:center;background:none;border:none;cursor:pointer;font-family:‘Heebo’,sans-serif;font-size:13px;font-weight:700;color:var(–muted);border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px}
+.bank-tab.active{color:var(–phase);border-bottom-color:var(–phase)}
 .bank-list{flex:1;overflow-y:auto;padding:0 20px}
-.bank-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
-.msg-row{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.bank-hint{font-size:12px;color:var(–muted);margin-bottom:12px;line-height:1.5}
+.msg-row{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;background:var(–card);border:1px solid var(–border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .msg-text{flex:1;font-size:14px;text-align:right;line-height:1.4}
-.msg-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px}
-.bank-input-row{display:flex;flex-direction:row-reverse;gap:10px;padding:12px 20px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
-.bank-input{flex:1;background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'Heebo',sans-serif;font-size:15px;direction:rtl;outline:none}
+.msg-del{background:none;border:none;cursor:pointer;color:var(–muted);font-size:16px;padding:2px}
+.bank-input-row{display:flex;flex-direction:row-reverse;gap:10px;padding:12px 20px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(–border);flex-shrink:0;background:var(–bg)}
+.bank-input{flex:1;background:var(–input);color:var(–text);border:1px solid var(–border);border-radius:12px;padding:12px 14px;font-family:‘Heebo’,sans-serif;font-size:15px;direction:rtl;outline:none}
 .bank-add-btn{width:50px;border-radius:12px;border:none;font-size:26px;cursor:pointer;color:#fff;transition:opacity .2s}
 .bank-add-btn:disabled{opacity:.3}
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(–border);border-radius:3px}
 </style>
+
 </head>
 <body>
 <div id="phase-glow"></div>
 <div id="bg-warning">⚠️ האפליקציה ברקע — חזור לאפליקציה לטיימר</div>
 
 <!-- ════════════════ SETUP ════════════════ -->
+
 <div class="screen active safe-top safe-bottom" id="screen-setup">
   <div class="top-bar" style="padding-bottom:4px">
-    <h1>ריצה חכמה 🏃</h1>
+    <h1>אוריצה 🏃</h1>
     <div style="display:flex;gap:8px">
       <button class="btn-ghost" onclick="location.reload()">🔄</button>
-      <button class="btn-ghost" onclick="goBank()">💬 הודעות</button>
+      <button class="btn-ghost" onclick="goBank()">💬 משפטי מוטיבציה</button>
     </div>
   </div>
   <p style="color:var(--muted);font-size:14px;padding:0 20px 16px">בנה את האימון שלך</p>
@@ -221,10 +224,14 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 </div>
 
 <!-- ════════════════ TIMER ════════════════ -->
+
 <div class="screen" id="screen-timer">
   <div class="timer-top safe-top">
-    <button class="timer-exit" onclick="confirmExit()">✕ סיים</button>
-    <div class="timer-elapsed" id="timer-elapsed">00:00</div>
+    <button class="timer-exit" onclick="confirmExit()">✕ סיים אימון</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="timer-exit" onclick="showMidSummary()" style="font-size:14px;padding:4px 6px">📊 סיכום</button>
+      <div class="timer-elapsed" id="timer-elapsed">00:00</div>
+    </div>
   </div>
   <div id="timer-step" class="timer-step"></div>
   <div id="timer-phase-label" class="timer-phase-label">ריצה 🏃</div>
@@ -248,6 +255,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 </div>
 
 <!-- ════════════════ SUMMARY ════════════════ -->
+
 <div class="screen" id="screen-summary">
   <div class="sum-header safe-top">
     <div class="sum-tagline">סיכום אימון</div>
@@ -286,17 +294,46 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   </div>
 </div>
 
+<!-- Mid-workout summary overlay -->
+
+<div id="mid-overlay" style="display:none;position:fixed;inset:0;background:rgba(8,8,16,.92);z-index:150;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px">
+  <div style="font-size:13px;font-weight:700;letter-spacing:3px;color:var(--done);text-transform:uppercase;margin-bottom:4px">סיכום האימון</div>
+  <div style="display:flex;gap:12px;width:100%;max-width:340px">
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div id="mid-time" style="font-size:24px;font-weight:900">--:--</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1px">זמן</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div id="mid-dist" style="font-size:24px;font-weight:900;color:var(--walk)">--</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1px">מרחק</div>
+    </div>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div id="mid-pace" style="font-size:24px;font-weight:900;color:var(--done)">--</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1px">קצב</div>
+    </div>
+  </div>
+  <div id="mid-map" style="width:100%;max-width:340px;height:280px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
+  <button onclick="closeMidSummary()" style="border:1.5px solid var(--done);border-radius:14px;background:none;padding:14px 48px;font-family:'Heebo',sans-serif;font-size:17px;font-weight:800;color:var(--done);cursor:pointer;width:100%;max-width:340px">▶ המשך אימון</button>
+  <button onclick="startVideoExport(true,midSnapTime,midSnapDist,midSnapTrack)" style="border:1.5px solid rgba(0,217,126,.35);border-radius:14px;background:rgba(0,217,126,.1);padding:13px 48px;font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;color:var(--walk);cursor:pointer;width:100%;max-width:340px">⬇️ הורד סרטון</button>
+</div>
+
 <!-- Video overlay -->
+
 <div id="video-overlay">
   <canvas id="video-canvas" width="390" height="700"></canvas>
   <div class="vid-status-row">
     <div id="video-status">⏳ טוען...</div>
     <div class="vid-progress-bar" id="vid-progress-bar"><div class="vid-progress-fill" id="vid-progress-fill"></div></div>
+    <div id="vid-save-note" style="display:none;font-size:12px;color:var(--muted);text-align:center;line-height:1.6">
+      📁 הקובץ נשמר בתיקיית <strong>הורדות</strong> (Downloads)<br>
+      <span style="color:rgba(74,82,112,.7)">iPhone: ב-Files → הורדות | Android: בגלריה או הורדות</span>
+    </div>
   </div>
   <button id="video-close" onclick="closeVideoOverlay()">סגור</button>
 </div>
 
 <!-- ════════════════ BANK ════════════════ -->
+
 <div class="screen" id="screen-bank" style="overflow:hidden">
   <div class="bank-header safe-top">
     <div class="bank-title">💬 בנק הודעות</div>
@@ -314,6 +351,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
 // ════════════════════════════════════════════
 // CONSTANTS
@@ -335,7 +373,7 @@ const DEFAULT_BANK={
   warmup:['חימום טוב — שרירים מאושרים!','קדימה, עוד קצת חימום ואז יש כיף!'],
 };
 const DONE_MSGS=['סיימת! ימטורף כמה שאתה טוב!','כל הכבוד! אלוף אמיתי!','מגעיל כמה שאתה חזק!','יאללה גיבור! האימון הסתיים!'];
-const DONE_HEROES=['ריצה של אלוף! 🏆','תגמול מגיע לך! 🔥','שיבר אותה! 💪','מה שלא יהרוג יחזק! 🏅'];
+const DONE_HEROES=['ריצה של אלוף! 🏆','היית אש! 🔥','אימון נהדר! 💪','בוא נסכם שאתה אלוף?! 🏅'];
 
 // ════════════════════════════════════════════
 // STATE
@@ -389,7 +427,7 @@ function hexToRgba(h,a){return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.sl
 // ════════════════════════════════════════════
 // SPEECH
 // ════════════════════════════════════════════
-let isSpeaking=false,speechQueue=[];
+let isSpeaking=false,speechQueue=[],speechTimer=null;
 function speak(text){speechQueue=[text];processSpeech()}
 function processSpeech(){
   if(isSpeaking||!speechQueue.length)return;
@@ -397,8 +435,15 @@ function processSpeech(){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';u.rate=0.95;u.pitch=1;
   const hv=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('he'));if(hv)u.voice=hv;
-  u.onend=u.onerror=()=>{isSpeaking=false;processSpeech()};
+  // Safety: if onend never fires (iOS background bug), reset after 12s
+  clearTimeout(speechTimer);
+  speechTimer=setTimeout(()=>{isSpeaking=false;processSpeech()},12000);
+  u.onend=u.onerror=()=>{clearTimeout(speechTimer);isSpeaking=false;processSpeech()};
   window.speechSynthesis.speak(u);
+}
+function resetSpeech(){
+  clearTimeout(speechTimer);window.speechSynthesis.cancel();
+  isSpeaking=false;speechQueue=[];
 }
 if(window.speechSynthesis)window.speechSynthesis.onvoiceschanged=()=>{};
 
@@ -605,9 +650,53 @@ function updateDoneStats(){
 // BACKGROUND
 // ════════════════════════════════════════════
 document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden){document.getElementById('bg-warning').style.display='none';if(isRunning){window.speechSynthesis?.resume();updateTimerUI()}}
-  else if(isRunning){document.getElementById('bg-warning').style.display='block';window.speechSynthesis?.resume()}
+  if(!document.hidden){
+    document.getElementById('bg-warning').style.display='none';
+    // Reset speech state — iOS kills onend while in background, leaving isSpeaking stuck
+    resetSpeech();
+    if(isRunning){updateTimerUI();lastAnnounceWall=Date.now();}
+  } else if(isRunning){
+    document.getElementById('bg-warning').style.display='block';
+  }
 });
+
+// ════════════════════════════════════════════
+// MID-WORKOUT SUMMARY
+// ════════════════════════════════════════════
+let midMap=null,midSnapTime=0,midSnapDist=0,midSnapTrack=[];
+function showMidSummary(){
+  // Snapshot at the moment of opening
+  midSnapTime=totalElapsedSecs();
+  midSnapDist=totalDistance;
+  midSnapTrack=[...gpsTrack];
+
+  const overlay=document.getElementById('mid-overlay');
+  overlay.style.display='flex';
+  document.getElementById('mid-time').textContent=formatTime(midSnapTime);
+  document.getElementById('mid-dist').textContent=midSnapDist>10?formatDist(midSnapDist):'--';
+  document.getElementById('mid-pace').textContent=formatPace(midSnapDist,midSnapTime);
+
+  // Build mini map
+  if(midMap){midMap.remove();midMap=null}
+  if(gpsTrack.length>=2){
+    midMap=L.map('mid-map',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(midMap);
+    // Draw track
+    const segs=[];let seg={phase:gpsTrack[0].phase,pts:[[gpsTrack[0].lat,gpsTrack[0].lng]]};segs.push(seg);
+    for(let i=1;i<gpsTrack.length;i++){const p=gpsTrack[i];if(p.phase===seg.phase)seg.pts.push([p.lat,p.lng]);else{seg={phase:p.phase,pts:[[gpsTrack[i-1].lat,gpsTrack[i-1].lng],[p.lat,p.lng]]};segs.push(seg)}}
+    segs.forEach(s=>{const c=PHASE_META[s.phase]?.color||'#fff';L.polyline(s.pts,{color:c,weight:12,opacity:.2,lineCap:'round'}).addTo(midMap);L.polyline(s.pts,{color:c,weight:4,opacity:1,lineCap:'round'}).addTo(midMap)});
+    // Current position dot
+    const last=gpsTrack[gpsTrack.length-1];
+    L.circleMarker([last.lat,last.lng],{radius:8,fillColor:'#fff',color:'rgba(255,255,255,.4)',weight:6,fillOpacity:1}).addTo(midMap);
+    midMap.fitBounds(L.latLngBounds(gpsTrack.map(p=>[p.lat,p.lng])),{padding:[20,20]});
+  } else {
+    document.getElementById('mid-map').innerHTML='<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px">אין נקודות GPS עדיין</div>';
+  }
+}
+function closeMidSummary(){
+  document.getElementById('mid-overlay').style.display='none';
+  if(midMap){midMap.remove();midMap=null}
+}
 
 // ════════════════════════════════════════════
 // SUMMARY SCREEN
@@ -727,9 +816,9 @@ function latLngToWorld(lat,lng,z){
 function worldToCanvas(wx,wy,ox,oy,scale){
   return{x:(wx-ox)*scale,y:(wy-oy)*scale};
 }
-function getTrackBounds(){
+function getTrackBounds(track){
   let nla=90,xla=-90,nlg=180,xlg=-180;
-  gpsTrack.forEach(p=>{nla=Math.min(nla,p.lat);xla=Math.max(xla,p.lat);nlg=Math.min(nlg,p.lng);xlg=Math.max(xlg,p.lng)});
+  track.forEach(p=>{nla=Math.min(nla,p.lat);xla=Math.max(xla,p.lat);nlg=Math.min(nlg,p.lng);xlg=Math.max(xlg,p.lng)});
   return{minLat:nla,maxLat:xla,minLng:nlg,maxLng:xlg};
 }
 function chooseBestZoom(b,W,H){
@@ -748,11 +837,15 @@ async function loadTile(z,x,y){
   });
 }
 
-async function startVideoExport(){
-  if(!gpsTrack.length){alert('אין נתוני GPS לסרטון.');return}
+async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapTrack=null){
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){
-    alert('הורדת סרטון אינה נתמכת בדפדפן זה.\nנסה Safari 15+ או Chrome.');return;
+    alert('הורדת סרטון אינה נתמכת בדפדפן זה.\nנסה Chrome במחשב או Chrome ב-Android.');return;
   }
+  // Use passed snapshot, or fall back to final values
+  if(snapTime===null) snapTime = finalElapsedSecs;
+  if(snapDist===null) snapDist = finalDistance;
+  if(snapTrack===null) snapTrack = [...gpsTrack];
+  if(!snapTrack.length){alert('אין נתוני GPS לסרטון.');return}
 
   const overlay=document.getElementById('video-overlay');
   const canvas=document.getElementById('video-canvas');
@@ -766,7 +859,7 @@ async function startVideoExport(){
   canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');
 
-  const bounds=getTrackBounds();
+  const bounds=getTrackBounds(snapTrack);
   const pad=0.0003;
   const padBounds={minLat:bounds.minLat-pad,maxLat:bounds.maxLat+pad,minLng:bounds.minLng-pad,maxLng:bounds.maxLng+pad};
   const zoom=chooseBestZoom(padBounds,W,MAP_H);
@@ -817,9 +910,9 @@ async function startVideoExport(){
     ctx.save();ctx.beginPath();ctx.rect(0,MAP_Y,W,MAP_H);ctx.clip();
     ctx.lineCap='round';ctx.lineJoin='round';
     for(let i=1;i<=upTo;i++){
-      const a=toPx(gpsTrack[i-1].lat,gpsTrack[i-1].lng);
-      const b=toPx(gpsTrack[i].lat,gpsTrack[i].lng);
-      const c=PHASE_META[gpsTrack[i].phase]?.color||'#fff';
+      const a=toPx(snapTrack[i-1].lat,snapTrack[i-1].lng);
+      const b=toPx(snapTrack[i].lat,snapTrack[i].lng);
+      const c=PHASE_META[snapTrack[i].phase]?.color||'#fff';
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
       ctx.strokeStyle=c;ctx.lineWidth=14;ctx.globalAlpha=.18;ctx.shadowBlur=0;ctx.stroke();
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
@@ -829,20 +922,18 @@ async function startVideoExport(){
   }
 
   function drawDot(ptIdx){
-    if(ptIdx>=gpsTrack.length)return;
-    const p=toPx(gpsTrack[ptIdx].lat,gpsTrack[ptIdx].lng);
+    if(ptIdx>=snapTrack.length)return;
+    const p=toPx(snapTrack[ptIdx].lat,snapTrack[ptIdx].lng);
     ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);
     ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=20;ctx.globalAlpha=1;ctx.fill();ctx.restore();
   }
 
   function drawStartEndMarkers(upTo){
-    // Start
-    const s=toPx(gpsTrack[0].lat,gpsTrack[0].lng);
+    const s=toPx(snapTrack[0].lat,snapTrack[0].lng);
     ctx.save();ctx.beginPath();ctx.arc(s.x,s.y,7,0,Math.PI*2);
     ctx.fillStyle='#fff';ctx.globalAlpha=1;ctx.fill();ctx.restore();
-    // End (only if animation complete)
-    if(upTo>=gpsTrack.length-1){
-      const e=toPx(gpsTrack[gpsTrack.length-1].lat,gpsTrack[gpsTrack.length-1].lng);
+    if(upTo>=snapTrack.length-1){
+      const e=toPx(snapTrack[snapTrack.length-1].lat,snapTrack[snapTrack.length-1].lng);
       ctx.save();ctx.beginPath();ctx.arc(e.x,e.y,7,0,Math.PI*2);
       ctx.fillStyle='#818cf8';ctx.shadowColor='#818cf8';ctx.shadowBlur=16;ctx.globalAlpha=1;ctx.fill();ctx.restore();
     }
@@ -850,20 +941,16 @@ async function startVideoExport(){
 
   function drawHeader(progFrac){
     ctx.fillStyle='rgba(8,8,16,0.95)';ctx.fillRect(0,0,W,HEADER);
-    // Gradient fade into map
     const gr=ctx.createLinearGradient(0,HEADER-20,0,HEADER+20);
     gr.addColorStop(0,'rgba(8,8,16,.95)');gr.addColorStop(1,'transparent');
     ctx.fillStyle=gr;ctx.fillRect(0,HEADER-20,W,40);
-
     ctx.direction='rtl';ctx.textAlign='right';
     ctx.font='bold 14px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.9)';
-    ctx.fillText('ריצה חכמה 🏃',W-20,34);
+    ctx.fillText(isMid?'ריצה חכמה 🏃 — ביניים':'ריצה חכמה 🏃',W-20,34);
     ctx.font='900 30px Heebo,sans-serif';ctx.fillStyle='#eef2ff';
-    ctx.fillText(formatTime(finalElapsedSecs),W-20,72);
-    const curDist=finalDistance*progFrac;
+    ctx.fillText(formatTime(snapTime),W-20,72);
     ctx.font='700 16px Heebo,sans-serif';ctx.fillStyle='#00d97e';
-    ctx.fillText(formatDist(curDist),W-20,96);
-    // Date (LTR)
+    ctx.fillText(formatDist(snapDist*progFrac),W-20,96);
     ctx.direction='ltr';ctx.textAlign='left';ctx.font='500 12px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.8)';
     ctx.fillText(new Date().toLocaleDateString('he-IL'),20,42);
   }
@@ -885,20 +972,35 @@ async function startVideoExport(){
     ctx.fillText('© CartoDB © OpenStreetMap contributors',20,H-FOOTER+44);
   }
 
-  // Recording setup
-  let mimeType='video/webm;codecs=vp9';
-  if(!MediaRecorder.isTypeSupported(mimeType))mimeType='video/webm';
+  // Recording setup — try MP4 first, fallback to WebM
+  const mimeOptions=['video/mp4','video/webm;codecs=vp9','video/webm'];
+  const mimeType=mimeOptions.find(m=>MediaRecorder.isTypeSupported(m))||'';
+  const ext=mimeType.includes('mp4')?'mp4':'webm';
   const stream=canvas.captureStream(30);
-  const recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:4000000});
+  const recorder=mimeType
+    ?new MediaRecorder(stream,{mimeType,videoBitsPerSecond:4000000})
+    :new MediaRecorder(stream);
   const chunks=[];
   recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   recorder.onstop=()=>{
-    const blob=new Blob(chunks,{type:recorder.mimeType});
+    const blob=new Blob(chunks,{type:recorder.mimeType||'video/webm'});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='ריצה.webm';a.click();
-    URL.revokeObjectURL(url);
-    status.textContent='✅ הסרטון הורד!';progFill.style.width='100%';
-    setTimeout(()=>closeVideoOverlay(),2500);
+    // iOS doesn't support anchor download — open directly so user can save via share sheet
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+    if(isIOS){
+      window.open(url,'_blank');
+      status.textContent='✅ הסרטון מוכן!';
+      document.getElementById('vid-save-note').innerHTML=
+        '📱 לחץ על הסרטון שנפתח ← לחץ שתף ← "Save to Files" או "Save to Photos"';
+    } else {
+      const a=document.createElement('a');a.href=url;
+      a.download=`ריצה_${new Date().toLocaleDateString('he-IL').replace(/\./g,'-')}.${ext}`;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      status.textContent=`✅ הסרטון נשמר כ-${ext.toUpperCase()}`;
+    }
+    document.getElementById('vid-save-note').style.display='block';
+    progFill.style.width='100%';
   };
   recorder.start(100);
 
@@ -906,25 +1008,24 @@ async function startVideoExport(){
   const FPS=30,DURATION=16;
   const totalFrames=FPS*DURATION;
   let frame=0,ptIdx=0;
-  const ptsPerFrame=Math.max(1,gpsTrack.length/totalFrames);
+  const ptsPerFrame=Math.max(1,snapTrack.length/totalFrames);
 
   function renderFrame(){
-    const progFrac=Math.min(1,ptIdx/Math.max(1,gpsTrack.length-1));
+    const progFrac=Math.min(1,ptIdx/Math.max(1,snapTrack.length-1));
     drawMapLayer();
     drawTrackUp(Math.round(ptIdx));
-    if(ptIdx<gpsTrack.length-1)drawDot(Math.round(ptIdx));
+    if(ptIdx<snapTrack.length-1)drawDot(Math.round(ptIdx));
     drawStartEndMarkers(Math.round(ptIdx));
     drawHeader(progFrac);drawFooter(progFrac);
-    frame++;ptIdx=Math.min(gpsTrack.length-1,ptIdx+ptsPerFrame);
+    frame++;ptIdx=Math.min(snapTrack.length-1,ptIdx+ptsPerFrame);
     progFill.style.width=`${50+frame/totalFrames*45|0}%`;
 
-    if(frame<totalFrames&&ptIdx<gpsTrack.length-1){
+    if(frame<totalFrames&&ptIdx<snapTrack.length-1){
       requestAnimationFrame(renderFrame);
     }else{
-      // Full route final hold
       let hold=0;const hi=setInterval(()=>{
-        drawMapLayer();drawTrackUp(gpsTrack.length-1);
-        drawStartEndMarkers(gpsTrack.length-1);drawHeader(1);drawFooter(1);
+        drawMapLayer();drawTrackUp(snapTrack.length-1);
+        drawStartEndMarkers(snapTrack.length-1);drawHeader(1);drawFooter(1);
         if(++hold>=90){clearInterval(hi);recorder.stop()}
       },33);
     }
@@ -1006,7 +1107,7 @@ function goBank(){showScreen('screen-bank');renderBank()}
 // PWA + INIT
 // ════════════════════════════════════════════
 (()=>{
-  const m={name:'ריצה חכמה',short_name:'ריצה',start_url:'.',display:'standalone',background_color:'#080810',theme_color:'#080810',orientation:'portrait',icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",sizes:'512x512',type:'image/svg+xml'}]};
+  const m={name:'אוריצה',short_name:'אוריצה',start_url:'.',display:'standalone',background_color:'#080810',theme_color:'#080810',orientation:'portrait',icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>",sizes:'512x512',type:'image/svg+xml'}]};
   const link=document.createElement('link');link.rel='manifest';link.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));document.head.appendChild(link);
 })();
 
@@ -1018,5 +1119,6 @@ if(targetMeters>0){document.getElementById('target-input').value=targetUnit==='k
 const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
 if(!isStandalone)document.getElementById('install-hint').textContent='💡 לחץ שתף ← "הוסף למסך הבית"';
 </script>
+
 </body>
 </html>
