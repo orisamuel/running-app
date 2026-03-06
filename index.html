@@ -1134,7 +1134,8 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     ctx.restore();
   }
 
-  function drawTrackUp(upTo){
+  function drawTrackUp(progFrac){
+    const upTo=Math.round(progFrac*(snapTrack.length-1));
     if(upTo<1)return;
     ctx.save();ctx.beginPath();ctx.rect(0,MAP_Y,W,MAP_H);ctx.clip();
     ctx.lineCap='round';ctx.lineJoin='round';
@@ -1150,15 +1151,14 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     ctx.restore();
   }
 
-  function drawDot(ptIdx){
-    if(ptIdx>=snapTrack.length)return;
+  function drawDotAt(progFrac){
+    const ptIdx=Math.round(progFrac*(snapTrack.length-1));
+    if(progFrac>=1)return;
     const p=toPx(snapTrack[ptIdx].lat,snapTrack[ptIdx].lng);
     ctx.save();
     if(runnerImg){
       const sz=44;
-      ctx.imageSmoothingEnabled=true;
-      ctx.imageSmoothingQuality='high';
-      // Circle clip for cleaner look
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
       ctx.beginPath();ctx.arc(p.x,p.y,sz/2,0,Math.PI*2);ctx.clip();
       ctx.shadowColor='rgba(255,255,255,0.5)';ctx.shadowBlur=12;
       ctx.drawImage(runnerImg,p.x-sz/2,p.y-sz/2,sz,sz);
@@ -1169,11 +1169,11 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     ctx.restore();
   }
 
-  function drawStartEndMarkers(upTo){
+  function drawStartEndMarkersAt(progFrac){
     const s=toPx(snapTrack[0].lat,snapTrack[0].lng);
     ctx.save();ctx.beginPath();ctx.arc(s.x,s.y,7,0,Math.PI*2);
     ctx.fillStyle='#fff';ctx.globalAlpha=1;ctx.fill();ctx.restore();
-    if(upTo>=snapTrack.length-1){
+    if(progFrac>=1){
       const e=toPx(snapTrack[snapTrack.length-1].lat,snapTrack[snapTrack.length-1].lng);
       ctx.save();ctx.beginPath();ctx.arc(e.x,e.y,7,0,Math.PI*2);
       ctx.fillStyle='#818cf8';ctx.shadowColor='#818cf8';ctx.shadowBlur=16;ctx.globalAlpha=1;ctx.fill();ctx.restore();
@@ -1273,13 +1273,11 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   ctx.imageSmoothingEnabled=false;
 
   function renderFrame(){
-    // progFrac based on frame count — always goes 0→1 over full duration
     const progFrac=Math.min(1,frame/Math.max(1,totalFrames-1));
-    const ptIdx=Math.round(progFrac*(snapTrack.length-1));
     drawMapLayer();
-    drawTrackUp(ptIdx);
-    if(progFrac<1)drawDot(ptIdx);
-    drawStartEndMarkers(ptIdx);
+    drawTrackUp(progFrac);
+    drawDotAt(progFrac);
+    drawStartEndMarkersAt(progFrac);
     drawHeader(progFrac);drawFooter(progFrac);
     frame++;
     progFill.style.width=`${50+frame/totalFrames*45|0}%`;
@@ -1287,10 +1285,9 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     if(frame<totalFrames){
       requestAnimationFrame(renderFrame);
     }else{
-      // Hold final frame ~3s
       let hold=0;const hi=setInterval(()=>{
-        drawMapLayer();drawTrackUp(snapTrack.length-1);
-        drawStartEndMarkers(snapTrack.length-1);drawHeader(1);drawFooter(1);
+        drawMapLayer();drawTrackUp(1);
+        drawStartEndMarkersAt(1);drawHeader(1);drawFooter(1);
         if(++hold>=90){clearInterval(hi);recorder.stop()}
       },33);
     }
