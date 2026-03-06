@@ -1155,8 +1155,12 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     const p=toPx(snapTrack[ptIdx].lat,snapTrack[ptIdx].lng);
     ctx.save();
     if(runnerImg){
-      const sz=36;
-      ctx.shadowColor='rgba(255,255,255,0.6)';ctx.shadowBlur=16;
+      const sz=44;
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      // Circle clip for cleaner look
+      ctx.beginPath();ctx.arc(p.x,p.y,sz/2,0,Math.PI*2);ctx.clip();
+      ctx.shadowColor='rgba(255,255,255,0.5)';ctx.shadowBlur=12;
       ctx.drawImage(runnerImg,p.x-sz/2,p.y-sz/2,sz,sz);
     } else {
       ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);
@@ -1258,27 +1262,32 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   window._videoShareData={get url(){return videoBlobUrl},get filename(){return videoFilename}};
   recorder.start(100);
 
-  // 2. Dynamic duration: 2.5s per km, max 20s — if longer, speed up (don't cut)
+  // Dynamic duration: 2.5s per km, max 20s — if longer, speed up
   const FPS=30;
   const idealDuration=Math.max(4,(snapDist/1000)*2.5);
-  const DURATION=Math.min(20,idealDuration); // cap display at 20s, speed compensates
-  const totalFrames=FPS*DURATION;
-  let frame=0,ptIdx=0;
-  const ptsPerFrame=Math.max(1,snapTrack.length/totalFrames);
+  const DURATION=Math.min(20,idealDuration);
+  const totalFrames=Math.round(FPS*DURATION);
+  let frame=0;
+
+  // Turn off image smoothing for crisp runner image
+  ctx.imageSmoothingEnabled=false;
 
   function renderFrame(){
-    const progFrac=Math.min(1,ptIdx/Math.max(1,snapTrack.length-1));
+    // progFrac based on frame count — always goes 0→1 over full duration
+    const progFrac=Math.min(1,frame/Math.max(1,totalFrames-1));
+    const ptIdx=Math.round(progFrac*(snapTrack.length-1));
     drawMapLayer();
-    drawTrackUp(Math.round(ptIdx));
-    if(ptIdx<snapTrack.length-1)drawDot(Math.round(ptIdx));
-    drawStartEndMarkers(Math.round(ptIdx));
+    drawTrackUp(ptIdx);
+    if(progFrac<1)drawDot(ptIdx);
+    drawStartEndMarkers(ptIdx);
     drawHeader(progFrac);drawFooter(progFrac);
-    frame++;ptIdx=Math.min(snapTrack.length-1,ptIdx+ptsPerFrame);
+    frame++;
     progFill.style.width=`${50+frame/totalFrames*45|0}%`;
 
-    if(frame<totalFrames&&ptIdx<snapTrack.length-1){
+    if(frame<totalFrames){
       requestAnimationFrame(renderFrame);
     }else{
+      // Hold final frame ~3s
       let hold=0;const hi=setInterval(()=>{
         drawMapLayer();drawTrackUp(snapTrack.length-1);
         drawStartEndMarkers(snapTrack.length-1);drawHeader(1);drawFooter(1);
