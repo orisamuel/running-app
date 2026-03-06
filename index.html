@@ -180,7 +180,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
     <h1>אוריצה 🏃</h1>
     <div style="display:flex;gap:8px">
       <button class="btn-ghost" onclick="location.reload()">🔄</button>
-      <button class="btn-ghost" onclick="goBank()">💬 משפטי מוטיבציה</button>
+      <button class="btn-ghost" onclick="goSettings()">⚙️</button>
     </div>
   </div>
   <p style="color:var(--muted);font-size:14px;padding:0 20px 16px">בנה את האימון שלך</p>
@@ -217,7 +217,6 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
       <div class="setup-summary-sub" id="summary-sub"></div>
     </div>
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
-    <button onclick="goDemo()" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:16px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:22px;font-weight:700;cursor:pointer;margin-top:10px">📽️</button>
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
@@ -226,7 +225,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 <div class="screen" id="screen-demo">
   <div class="top-bar safe-top">
     <div style="font-size:20px;font-weight:900">🎬 סרטון מדומה</div>
-    <button class="btn-ghost" onclick="goSetup()">← חזור</button>
+    <button class="btn-ghost" onclick="goSettings()">← חזור</button>
   </div>
   <div class="screen-scroll">
     <div class="card">
@@ -376,13 +375,98 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   <button id="video-close" onclick="closeVideoOverlay()">סגור</button>
 </div>
 
+<!-- ════════════════ SETTINGS ════════════════ -->
+<div class="screen" id="screen-settings">
+  <div class="bank-header safe-top">
+    <div class="bank-title">⚙️ הגדרות</div>
+    <button class="btn-ghost" onclick="goSetup()">← חזור</button>
+  </div>
+  <div class="screen-scroll" style="padding:0 16px 32px">
+
+    <!-- User name -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">👤 שם משתמש</div>
+      <div class="card-hint">יופיע בסיכום האימון</div>
+      <input id="settings-name" type="text" dir="rtl" placeholder="אורי"
+        style="width:100%;background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'Heebo',sans-serif;font-size:16px;outline:none;box-sizing:border-box"
+        oninput="saveSetting('userName',this.value)">
+    </div>
+
+    <!-- Map default -->
+    <div class="card">
+      <div class="card-title">🗺️ מצב מפה ברירת מחדל</div>
+      <div style="display:flex;gap:10px;flex-direction:row-reverse;margin-top:4px">
+        <button id="settings-map-dark" onclick="setMapDefault('dark')"
+          style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--phase);background:var(--input);color:var(--text);font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;cursor:pointer">🌙 כהה</button>
+        <button id="settings-map-light" onclick="setMapDefault('light')"
+          style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;cursor:pointer">☀️ בהיר</button>
+      </div>
+    </div>
+
+    <!-- Distance units -->
+    <div class="card">
+      <div class="card-title">📏 יחידות מרחק</div>
+      <div style="display:flex;gap:10px;flex-direction:row-reverse;margin-top:4px">
+        <button id="settings-unit-km" onclick="setDistUnit('km')"
+          style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--phase);background:var(--input);color:var(--text);font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;cursor:pointer">ק"מ</button>
+        <button id="settings-unit-mi" onclick="setDistUnit('mi')"
+          style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;cursor:pointer">מייל</button>
+      </div>
+    </div>
+
+    <!-- Speech rate -->
+    <div class="card">
+      <div class="card-title">🔊 מהירות דיבור</div>
+      <div style="display:flex;align-items:center;gap:14px;flex-direction:row-reverse;margin-top:6px">
+        <span style="font-size:13px;color:var(--muted);min-width:32px;text-align:center" id="speech-rate-val">1×</span>
+        <input type="range" min="0.6" max="1.6" step="0.1" id="settings-speech-rate"
+          style="flex:1;accent-color:var(--phase)"
+          oninput="setSpeechRate(this.value)">
+      </div>
+    </div>
+
+    <!-- Runner image -->
+    <div class="card">
+      <div class="card-title">🏃 תמונת רץ בסרטון</div>
+      <div class="card-hint">ברירת מחדל: 🏃. ניתן להעלות תמונה אישית (PNG עם רקע שקוף מומלץ)</div>
+      <div style="display:flex;align-items:center;gap:14px;flex-direction:row-reverse;margin-top:8px">
+        <div id="runner-preview" style="width:52px;height:52px;border-radius:50%;background:var(--input);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden">🏃</div>
+        <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+          <label style="display:block;padding:10px 14px;border:1px solid var(--border);border-radius:10px;text-align:center;cursor:pointer;font-family:'Heebo',sans-serif;font-size:14px;color:var(--text)">
+            📁 בחר תמונה
+            <input type="file" accept="image/*" style="display:none" onchange="setRunnerImage(this)">
+          </label>
+          <button onclick="resetRunnerImage()" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:none;font-family:'Heebo',sans-serif;font-size:14px;color:var(--muted);cursor:pointer">↺ ברירת מחדל</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages bank -->
+    <div class="card" style="cursor:pointer" onclick="goBank()">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-direction:row-reverse">
+        <div class="card-title" style="margin-bottom:0">💬 משפטי מוטיבציה</div>
+        <div style="color:var(--muted);font-size:18px">›</div>
+      </div>
+    </div>
+
+    <!-- Demo video -->
+    <div class="card" style="cursor:pointer" onclick="goDemo()">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-direction:row-reverse">
+        <div class="card-title" style="margin-bottom:0">📽️ סרטון מדומה</div>
+        <div style="color:var(--muted);font-size:18px">›</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ════════════════ BANK ════════════════ -->
 <div class="screen" id="screen-bank" style="overflow:hidden">
   <div class="bank-header safe-top">
     <div class="bank-title">💬 בנק הודעות</div>
     <div style="display:flex;gap:8px">
       <button class="btn-ghost" onclick="resetBank()" style="font-size:12px">איפוס</button>
-      <button class="btn-ghost" onclick="goSetup()">← חזור</button>
+      <button class="btn-ghost" onclick="goSettings()">← חזור</button>
     </div>
   </div>
   <div class="bank-tabs" id="bank-tabs"></div>
@@ -395,8 +479,88 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+const SETTINGS_KEY='running_settings_v1';
+let settings={userName:'',mapMode:'dark',distUnit:'km',speechRate:1,runnerImage:null};
+
+function loadSettings(){
+  try{const s=localStorage.getItem(SETTINGS_KEY);if(s)settings=Object.assign(settings,JSON.parse(s))}catch(e){}
+  mapMode=settings.mapMode;
+}
+
+function saveSettings(){
+  try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch(e){}
+}
+
+function saveSetting(key,val){settings[key]=val;saveSettings()}
+
+function setMapDefault(mode){
+  settings.mapMode=mode;mapMode=mode;saveSettings();
+  document.getElementById('settings-map-dark').style.border=mode==='dark'?'2px solid var(--phase)':'1px solid var(--border)';
+  document.getElementById('settings-map-dark').style.background=mode==='dark'?'var(--input)':'none';
+  document.getElementById('settings-map-dark').style.color=mode==='dark'?'var(--text)':'var(--muted)';
+  document.getElementById('settings-map-light').style.border=mode==='light'?'2px solid var(--phase)':'1px solid var(--border)';
+  document.getElementById('settings-map-light').style.background=mode==='light'?'var(--input)':'none';
+  document.getElementById('settings-map-light').style.color=mode==='light'?'var(--text)':'var(--muted)';
+}
+
+function setDistUnit(unit){
+  settings.distUnit=unit;saveSettings();
+  document.getElementById('settings-unit-km').style.border=unit==='km'?'2px solid var(--phase)':'1px solid var(--border)';
+  document.getElementById('settings-unit-km').style.background=unit==='km'?'var(--input)':'none';
+  document.getElementById('settings-unit-km').style.color=unit==='km'?'var(--text)':'var(--muted)';
+  document.getElementById('settings-unit-mi').style.border=unit==='mi'?'2px solid var(--phase)':'1px solid var(--border)';
+  document.getElementById('settings-unit-mi').style.background=unit==='mi'?'var(--input)':'none';
+  document.getElementById('settings-unit-mi').style.color=unit==='mi'?'var(--text)':'var(--muted)';
+}
+
+function setSpeechRate(val){
+  settings.speechRate=parseFloat(val);saveSettings();
+  document.getElementById('speech-rate-val').textContent=parseFloat(val).toFixed(1).replace('.0','')+'×';
+}
+
+let runnerImg=null;
+function setRunnerImage(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    settings.runnerImage=e.target.result;saveSettings();
+    loadRunnerImg();updateRunnerPreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetRunnerImage(){
+  settings.runnerImage=null;saveSettings();
+  runnerImg=null;updateRunnerPreview();
+}
+
+function loadRunnerImg(){
+  if(!settings.runnerImage){runnerImg=null;return}
+  const img=new Image();img.onload=()=>{runnerImg=img};img.src=settings.runnerImage;
+}
+
+function updateRunnerPreview(){
+  const el=document.getElementById('runner-preview');
+  if(settings.runnerImage){
+    el.innerHTML=`<img src="${settings.runnerImage}" style="width:52px;height:52px;object-fit:cover;border-radius:50%">`;
+  } else {
+    el.innerHTML='🏃';
+  }
+}
+
+function goSettings(){
+  showScreen('screen-settings');
+  // Populate fields
+  document.getElementById('settings-name').value=settings.userName||'';
+  setMapDefault(settings.mapMode||'dark');
+  setDistUnit(settings.distUnit||'km');
+  const sr=settings.speechRate||1;
+  document.getElementById('settings-speech-rate').value=sr;
+  document.getElementById('speech-rate-val').textContent=sr.toFixed(1).replace('.0','')+'×';
+  updateRunnerPreview();
+}
+
 // ════════════════════════════════════════════
-// CONSTANTS
 // ════════════════════════════════════════════
 const PHASE_TYPES=['warmup','run','walk'];
 const PHASE_META={
@@ -473,7 +637,14 @@ function saveWorkout(){localStorage.setItem(WORKOUT_KEY,JSON.stringify({phases,r
 function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function randFrom(t){const m=bank?.[t];return m?.length?rand(m):rand(DEFAULT_BANK[t]||['קדימה!'])}
 function formatTime(s){s=Math.max(0,Math.round(s));return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
-function formatDist(m){if(m<1)return'0 מ׳';if(m<1000)return`${Math.round(m)} מ׳`;return`${(m/1000).toFixed(3)} ק"מ`}
+function formatDist(m){
+  if(settings.distUnit==='mi'){
+    const mi=m/1609.34;
+    if(m<160)return`${Math.round(m)} מ׳`;
+    return`${mi.toFixed(2)} mi`;
+  }
+  if(m<1)return'0 מ׳';if(m<1000)return`${Math.round(m)} מ׳`;return`${(m/1000).toFixed(3)} ק"מ`;
+}
 function formatPace(meters,secs){if(meters<100||secs<1)return'--';return formatTime((secs/meters)*1000)+'/ק"מ'}
 function formatDuration(s){s=Math.round(s);const m=Math.floor(s/60),r=s%60;if(m===0)return`${r} שניות`;if(r===0)return m===1?'דקה':`${m} דקות`;return`${m} דקות ו-${r} שניות`}
 function timeAwareMsg(ep,rp,mot){const p=[];if(ep>=60)p.push(`עברו ${formatDuration(ep)}`);if(rp>5)p.push(`נשאר ${formatDuration(rp)}`);return p.length?`${p.join(', ')} — ${mot}`:mot}
@@ -489,7 +660,7 @@ function processSpeech(){
   if(isSpeaking||!speechQueue.length)return;
   isSpeaking=true;const text=speechQueue.shift();
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';u.rate=0.95;u.pitch=1;
+  const u=new SpeechSynthesisUtterance(text);u.lang='he-IL';u.rate=settings.speechRate||0.95;u.pitch=1;
   const hv=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('he'));if(hv)u.voice=hv;
   // Safety: if onend never fires (iOS background bug), reset after 12s
   clearTimeout(speechTimer);
@@ -760,7 +931,9 @@ function closeMidSummary(){
 function goSummary(){
   clearInterval(doneStatsInterval);
   showScreen('screen-summary');
-  document.getElementById('sum-hero').textContent=rand(DONE_HEROES);
+  const hero=rand(DONE_HEROES);
+  const name=settings.userName?` ${settings.userName}`:'';
+  document.getElementById('sum-hero').textContent=hero.replace('!',`${name}!`);
   document.getElementById('sum-time').textContent=formatTime(finalElapsedSecs);
   document.getElementById('sum-dist').textContent=finalDistance>10?formatDist(finalDistance):'--';
   document.getElementById('sum-pace').textContent=formatPace(finalDistance,finalElapsedSecs);
@@ -911,7 +1084,7 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   overlay.style.display='flex';progBar.style.display='block';
   status.textContent='⏳ טוען מפה...';progFill.style.width='0%';
 
-  const W=390,H=700,HEADER=110,FOOTER=70,MAP_Y=HEADER,MAP_H=H-HEADER-FOOTER;
+  const W=390,H=700,HEADER=42,FOOTER=70,MAP_Y=HEADER,MAP_H=H-HEADER-FOOTER;
   canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');
 
@@ -980,8 +1153,16 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   function drawDot(ptIdx){
     if(ptIdx>=snapTrack.length)return;
     const p=toPx(snapTrack[ptIdx].lat,snapTrack[ptIdx].lng);
-    ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);
-    ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=20;ctx.globalAlpha=1;ctx.fill();ctx.restore();
+    ctx.save();
+    if(runnerImg){
+      const sz=36;
+      ctx.shadowColor='rgba(255,255,255,0.6)';ctx.shadowBlur=16;
+      ctx.drawImage(runnerImg,p.x-sz/2,p.y-sz/2,sz,sz);
+    } else {
+      ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);
+      ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=20;ctx.globalAlpha=1;ctx.fill();
+    }
+    ctx.restore();
   }
 
   function drawStartEndMarkers(upTo){
@@ -996,47 +1177,42 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   }
 
   function drawHeader(progFrac){
-    // Background
+    // Thin top bar only
     ctx.fillStyle='rgba(8,8,16,0.96)';ctx.fillRect(0,0,W,HEADER);
-    const gr=ctx.createLinearGradient(0,HEADER-20,0,HEADER+20);
-    gr.addColorStop(0,'rgba(8,8,16,.96)');gr.addColorStop(1,'transparent');
-    ctx.fillStyle=gr;ctx.fillRect(0,HEADER-20,W,40);
 
-    // App name (small, top right)
+    // App name (right)
     ctx.direction='rtl';ctx.textAlign='right';
-    ctx.font='600 12px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.7)';
-    ctx.fillText(isMid?'אוריצה 🏃 — ביניים':'אוריצה 🏃',W-16,22);
+    ctx.font='600 13px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.85)';
+    ctx.fillText(isMid?'אוריצה 🏃 — ביניים':'אוריצה 🏃',W-14,27);
 
-    // Date (small, top left)
+    // Date (left)
     ctx.direction='ltr';ctx.textAlign='left';
-    ctx.font='500 11px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.7)';
-    ctx.fillText(new Date().toLocaleDateString('he-IL'),16,22);
+    ctx.font='500 11px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.75)';
+    ctx.fillText(new Date().toLocaleDateString('he-IL'),14,27);
 
-    // Stat cards — time counts up with animation
+    // Stat cards overlay — top-right corner of map
     const curDist=snapDist*progFrac;
     const curTime=snapTime*progFrac;
     const pace=formatPace(curDist,curTime);
     const stats=[
-      {label:'זמן',val:formatTime(curTime),color:'#eef2ff'},
-      {label:'מרחק',val:formatDist(curDist),color:'#00d97e'},
-      {label:'קצב',val:pace,color:'#818cf8'},
+      {label:'זמן', val:formatTime(curTime), color:'#eef2ff'},
+      {label:'מרחק',val:formatDist(curDist), color:'#00d97e'},
+      {label:'קצב', val:pace,                color:'#818cf8'},
     ];
-    const cardW=(W-48)/3,cardH=58,cardY=30,gap=8;
-    // cards go RTL: right to left
+    const cardW=86,cardH=52,gap=6,cardY=MAP_Y+12;
     stats.forEach((s,i)=>{
-      const x=W-16-(i+1)*cardW-i*gap;
-      // Card bg
-      ctx.fillStyle='rgba(15,15,26,0.9)';
-      ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
+      const x=W-14-(i+1)*cardW-i*gap;
+      ctx.save();
+      ctx.fillStyle='rgba(8,8,16,0.72)';
+      ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
       ctx.beginPath();ctx.roundRect(x,cardY,cardW,cardH,10);ctx.fill();ctx.stroke();
-      // Value
       ctx.textAlign='center';ctx.direction='ltr';
-      ctx.font=`900 ${s.val.length>5?17:20}px Heebo,sans-serif`;
+      ctx.font=`900 ${s.val.length>5?15:18}px Heebo,sans-serif`;
       ctx.fillStyle=s.color;ctx.globalAlpha=1;
-      ctx.fillText(s.val,x+cardW/2,cardY+30);
-      // Label
-      ctx.font='600 9px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.9)';
-      ctx.fillText(s.label,x+cardW/2,cardY+48);
+      ctx.fillText(s.val,x+cardW/2,cardY+28);
+      ctx.font='600 9px Heebo,sans-serif';ctx.fillStyle='rgba(180,180,200,.7)';
+      ctx.fillText(s.label,x+cardW/2,cardY+44);
+      ctx.restore();
     });
   }
 
@@ -1338,6 +1514,7 @@ function goBank(){showScreen('screen-bank');renderBank()}
 document.getElementById('bank-input').addEventListener('input',function(){document.getElementById('bank-add-btn').disabled=!this.value.trim()});
 document.getElementById('bank-input').addEventListener('keydown',function(e){if(e.key==='Enter')addBankMsg()});
 
+loadSettings();loadRunnerImg();
 loadBank();loadWorkout();renderSetup();renderAddRow();
 if(targetMeters>0){document.getElementById('target-input').value=targetUnit==='km'?targetMeters/1000:targetMeters;setTargetUnit(targetUnit);updateTargetLabel()}
 const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
