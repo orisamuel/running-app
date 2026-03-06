@@ -144,7 +144,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 .sum-btn-video{background:rgba(0,217,126,.1);border:1.5px solid rgba(0,217,126,.3);color:var(--walk)}
 .sum-btn-new{background:var(--run);color:#fff}
 /* Overlay */
-#video-overlay{position:fixed;inset:0;background:rgba(8,8,16,.97);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px}
+#video-overlay{position:fixed;inset:0;background:rgba(8,8,16,.97);z-index:200;display:none;flex-direction:column;align-items:center;gap:18px;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
 #video-canvas{border-radius:14px;max-width:100%;box-shadow:0 0 60px rgba(0,0,0,.9)}
 .vid-status-row{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
 #video-status{color:var(--text);font-size:15px;font-weight:700;text-align:center}
@@ -257,7 +257,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
         <div class="card-title">👀 תצוגה מקדימה</div>
         <div id="demo-preview-map" style="height:280px;border-radius:12px;overflow:hidden;border:1px solid var(--border)"></div>
       </div>
-      <button class="btn-primary" onclick="startDemoVideoExport()" style="margin-top:4px">⬇️ הורד סרטון</button>
+      <button class="btn-primary" onclick="startDemoVideoExport()" style="margin-top:4px">⬇️</button>
     </div>
   </div>
 </div>
@@ -325,7 +325,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
     </div>
     <div class="sum-actions">
       <button class="sum-btn sum-btn-replay" onclick="replayRoute()" id="btn-replay">🎬 הפעל שוב</button>
-      <button class="sum-btn sum-btn-video" onclick="startVideoExport()" id="btn-video">⬇️ הורד סרטון</button>
+      <button class="sum-btn sum-btn-video" onclick="startVideoExport()" id="btn-video">⬇️</button>
       <button class="sum-btn sum-btn-new" onclick="goSetup()">🏃 אימון חדש</button>
     </div>
   </div>
@@ -350,7 +350,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   </div>
   <div id="mid-map" style="width:100%;max-width:340px;height:280px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
   <button onclick="closeMidSummary()" style="border:1.5px solid var(--done);border-radius:14px;background:none;padding:14px 48px;font-family:'Heebo',sans-serif;font-size:17px;font-weight:800;color:var(--done);cursor:pointer;width:100%;max-width:340px">▶ המשך אימון</button>
-  <button onclick="startVideoExport(true,midSnapTime,midSnapDist,midSnapTrack)" style="border:1.5px solid rgba(0,217,126,.35);border-radius:14px;background:rgba(0,217,126,.1);padding:13px 48px;font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;color:var(--walk);cursor:pointer;width:100%;max-width:340px">⬇️ הורד סרטון</button>
+  <button onclick="startVideoExport(true,midSnapTime,midSnapDist,midSnapTrack)" style="border:1.5px solid rgba(0,217,126,.35);border-radius:14px;background:rgba(0,217,126,.1);padding:13px 48px;font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;color:var(--walk);cursor:pointer;width:100%;max-width:340px">⬇️</button>
 </div>
 
 <!-- Video overlay -->
@@ -973,19 +973,47 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   }
 
   function drawHeader(progFrac){
-    ctx.fillStyle='rgba(8,8,16,0.95)';ctx.fillRect(0,0,W,HEADER);
+    // Background
+    ctx.fillStyle='rgba(8,8,16,0.96)';ctx.fillRect(0,0,W,HEADER);
     const gr=ctx.createLinearGradient(0,HEADER-20,0,HEADER+20);
-    gr.addColorStop(0,'rgba(8,8,16,.95)');gr.addColorStop(1,'transparent');
+    gr.addColorStop(0,'rgba(8,8,16,.96)');gr.addColorStop(1,'transparent');
     ctx.fillStyle=gr;ctx.fillRect(0,HEADER-20,W,40);
+
+    // App name (small, top right)
     ctx.direction='rtl';ctx.textAlign='right';
-    ctx.font='bold 14px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.9)';
-    ctx.fillText(isMid?'ריצה חכמה 🏃 — ביניים':'ריצה חכמה 🏃',W-20,34);
-    ctx.font='900 30px Heebo,sans-serif';ctx.fillStyle='#eef2ff';
-    ctx.fillText(formatTime(snapTime),W-20,72);
-    ctx.font='700 16px Heebo,sans-serif';ctx.fillStyle='#00d97e';
-    ctx.fillText(formatDist(snapDist*progFrac),W-20,96);
-    ctx.direction='ltr';ctx.textAlign='left';ctx.font='500 12px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.8)';
-    ctx.fillText(new Date().toLocaleDateString('he-IL'),20,42);
+    ctx.font='600 12px Heebo,sans-serif';ctx.fillStyle='rgba(129,140,248,.7)';
+    ctx.fillText(isMid?'אוריצה 🏃 — ביניים':'אוריצה 🏃',W-16,22);
+
+    // Date (small, top left)
+    ctx.direction='ltr';ctx.textAlign='left';
+    ctx.font='500 11px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.7)';
+    ctx.fillText(new Date().toLocaleDateString('he-IL'),16,22);
+
+    // Stat cards
+    const curDist=snapDist*progFrac;
+    const pace=formatPace(curDist,snapTime*progFrac);
+    const stats=[
+      {label:'זמן',val:formatTime(snapTime),color:'#eef2ff'},
+      {label:'מרחק',val:formatDist(curDist),color:'#00d97e'},
+      {label:'קצב',val:pace,color:'#818cf8'},
+    ];
+    const cardW=(W-48)/3,cardH=58,cardY=30,gap=8;
+    // cards go RTL: right to left
+    stats.forEach((s,i)=>{
+      const x=W-16-(i+1)*cardW-i*gap;
+      // Card bg
+      ctx.fillStyle='rgba(15,15,26,0.9)';
+      ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.roundRect(x,cardY,cardW,cardH,10);ctx.fill();ctx.stroke();
+      // Value
+      ctx.textAlign='center';ctx.direction='ltr';
+      ctx.font=`900 ${s.val.length>5?17:20}px Heebo,sans-serif`;
+      ctx.fillStyle=s.color;ctx.globalAlpha=1;
+      ctx.fillText(s.val,x+cardW/2,cardY+30);
+      // Label
+      ctx.font='600 9px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.9)';
+      ctx.fillText(s.label,x+cardW/2,cardY+48);
+    });
   }
 
   function drawFooter(progFrac){
