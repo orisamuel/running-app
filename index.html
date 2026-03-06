@@ -217,7 +217,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
       <div class="setup-summary-sub" id="summary-sub"></div>
     </div>
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
-    <button onclick="goDemo()" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:16px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px">🎬</button>
+    <button onclick="goDemo()" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:16px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px">🎬 צור סרטון מדומה</button>
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
@@ -359,9 +359,9 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   <div class="vid-status-row">
     <div id="video-status">⏳ טוען...</div>
     <div class="vid-progress-bar" id="vid-progress-bar"><div class="vid-progress-fill" id="vid-progress-fill"></div></div>
+    <button id="vid-share-btn" onclick="doVideoShare()" style="display:none;border:none;border-radius:14px;background:var(--walk);color:#fff;font-family:'Heebo',sans-serif;font-size:17px;font-weight:800;padding:15px 40px;cursor:pointer;width:100%;max-width:340px">📤 שתף / שמור סרטון</button>
     <div id="vid-save-note" style="display:none;font-size:12px;color:var(--muted);text-align:center;line-height:1.6">
-      📁 הקובץ נשמר בתיקיית <strong>הורדות</strong> (Downloads)<br>
-      <span style="color:rgba(74,82,112,.7)">iPhone: ב-Files → הורדות | Android: בגלריה או הורדות</span>
+      iPhone: שתף ← Save to Files / Save to Photos
     </div>
   </div>
   <button id="video-close" onclick="closeVideoOverlay()">סגור</button>
@@ -1014,32 +1014,20 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     ?new MediaRecorder(stream,{mimeType,videoBitsPerSecond:4000000})
     :new MediaRecorder(stream);
   const chunks=[];
+  let videoBlobUrl=null,videoFilename=null;
+
   recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-  recorder.onstop=async()=>{
+  recorder.onstop=()=>{
     const blob=new Blob(chunks,{type:recorder.mimeType||'video/webm'});
-    const filename=`אוריצה_${new Date().toLocaleDateString('he-IL').replace(/\./g,'-')}.${ext}`;
-    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-    if(isIOS && navigator.share){
-      try{
-        const file=new File([blob],filename,{type:blob.type});
-        await navigator.share({files:[file]});
-        status.textContent='✅ הסרטון מוכן לשמירה!';
-      }catch(e){
-        // User cancelled share or not supported — fallback to open
-        const url=URL.createObjectURL(blob);
-        window.open(url,'_blank');
-        status.textContent='✅ הסרטון נפתח — לחץ שתף ← Save to Files';
-      }
-    } else {
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download=filename;
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      status.textContent=`✅ הסרטון נשמר!`;
-    }
-    document.getElementById('vid-save-note').style.display='block';
+    videoFilename=`אוריצה_${new Date().toLocaleDateString('he-IL').replace(/\./g,'-')}.${ext}`;
+    videoBlobUrl=URL.createObjectURL(blob);
     progFill.style.width='100%';
+    status.textContent='✅ הסרטון מוכן!';
+    document.getElementById('vid-share-btn').style.display='block';
+    document.getElementById('vid-save-note').style.display='block';
   };
+
+  window._videoShareData={get url(){return videoBlobUrl},get filename(){return videoFilename}};
   recorder.start(100);
 
   // Animation
@@ -1071,7 +1059,32 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   requestAnimationFrame(renderFrame);
 }
 
-function closeVideoOverlay(){document.getElementById('video-overlay').style.display='none'}
+async function doVideoShare(){
+  const {url,filename}=window._videoShareData||{};
+  if(!url)return;
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(isIOS && navigator.share){
+    try{
+      const res=await fetch(url);
+      const blob=await res.blob();
+      const file=new File([blob],filename,{type:blob.type});
+      await navigator.share({files:[file]});
+    }catch(e){}
+  } else {
+    const a=document.createElement('a');a.href=url;a.download=filename;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+}
+
+function closeVideoOverlay(){
+  document.getElementById('video-overlay').style.display='none';
+  document.getElementById('vid-share-btn').style.display='none';
+  document.getElementById('vid-save-note').style.display='none';
+  document.getElementById('video-status').textContent='⏳ טוען...';
+  document.getElementById('vid-progress-fill').style.width='0%';
+  if(window._videoShareData?.url)URL.revokeObjectURL(window._videoShareData.url);
+  window._videoShareData=null;
+}
 
 // ════════════════════════════════════════════
 // SETUP UI
@@ -1163,33 +1176,64 @@ function goDemo(){
   },100);
 }
 
-function generateDemoRoute(){
+async function generateDemoRoute(){
   if(!demoStartLatLng){alert('בחר נקודת התחלה על המפה');return}
   const km=parseFloat(document.getElementById('demo-dist-input').value)||5;
   if(km<=0||km>100){alert('מרחק לא תקין');return}
 
-  // Build random-walk track
-  const totalMeters=km*1000;
-  const stepM=20; // one GPS point every ~20 meters
-  const steps=Math.round(totalMeters/stepM);
-  const DEG_PER_METER=1/111320;
+  document.getElementById('demo-gen-btn').textContent='⏳ מחפש מסלול...';
+  document.getElementById('demo-gen-btn').disabled=true;
 
-  let lat=demoStartLatLng[0],lng=demoStartLatLng[1];
-  let heading=Math.random()*360; // random start direction
-  const PHASES=['warmup','run','run','run','walk','run','run'];
-  demoTrack=[{lat,lng,phase:'warmup'}];
+  try{
+    // Generate waypoints scattered around start point
+    const DEG=1/111320;
+    const spread=km*0.4*DEG; // spread proportional to distance
+    const [startLat,startLng]=demoStartLatLng;
+    const waypoints=[[startLat,startLng]];
+    const count=Math.min(6,Math.max(3,Math.round(km/1.5)));
+    for(let i=0;i<count;i++){
+      const angle=(i/count)*2*Math.PI+Math.random()*0.5;
+      const r=spread*(0.5+Math.random()*0.5);
+      waypoints.push([
+        startLat+Math.cos(angle)*r,
+        startLng+Math.sin(angle)*r/Math.cos(startLat*Math.PI/180)
+      ]);
+    }
+    waypoints.push([startLat,startLng]); // return to start
 
-  for(let i=1;i<steps;i++){
-    // Gentle heading drift — feels like streets/turns
-    heading+=( Math.random()-0.5)*22;
-    // Occasional sharper turn (street corner)
-    if(Math.random()<0.04) heading+=(Math.random()<0.5?1:-1)*(70+Math.random()*50);
-    const rad=heading*Math.PI/180;
-    lat+=Math.cos(rad)*stepM*DEG_PER_METER;
-    lng+=Math.sin(rad)*stepM*DEG_PER_METER/(Math.cos(demoStartLatLng[0]*Math.PI/180));
-    const phase=PHASES[Math.floor(i/steps*PHASES.length)];
-    demoTrack.push({lat,lng,phase});
+    const coords=waypoints.map(p=>p[1].toFixed(6)+','+p[0].toFixed(6)).join(';');
+    const url=`https://router.project-osrm.org/route/v1/foot/${coords}?overview=full&geometries=geojson`;
+    const res=await fetch(url);
+    const data=await res.json();
+
+    if(!data.routes?.length)throw new Error('no route');
+
+    const coords2d=data.routes[0].geometry.coordinates; // [lng,lat] pairs
+    const PHASES=['warmup','run','run','run','walk','run','run'];
+    demoTrack=coords2d.map((c,i)=>({
+      lat:c[1],lng:c[0],
+      phase:PHASES[Math.floor(i/coords2d.length*PHASES.length)]
+    }));
+
+  }catch(e){
+    // Fallback to random walk if OSRM fails
+    const totalMeters=km*1000,stepM=20,steps=Math.round(totalMeters/stepM);
+    const DEG_PER_METER=1/111320;
+    let lat=demoStartLatLng[0],lng=demoStartLatLng[1],heading=Math.random()*360;
+    const PHASES=['warmup','run','run','run','walk','run','run'];
+    demoTrack=[{lat,lng,phase:'warmup'}];
+    for(let i=1;i<steps;i++){
+      heading+=(Math.random()-0.5)*22;
+      if(Math.random()<0.04)heading+=(Math.random()<0.5?1:-1)*(70+Math.random()*50);
+      const rad=heading*Math.PI/180;
+      lat+=Math.cos(rad)*stepM*DEG_PER_METER;
+      lng+=Math.sin(rad)*stepM*DEG_PER_METER/(Math.cos(demoStartLatLng[0]*Math.PI/180));
+      demoTrack.push({lat,lng,phase:PHASES[Math.floor(i/steps*PHASES.length)]});
+    }
   }
+
+  document.getElementById('demo-gen-btn').textContent='✨ צור מסלול';
+  document.getElementById('demo-gen-btn').disabled=false;
 
   // Preview
   document.getElementById('demo-preview-wrap').style.display='block';
@@ -1197,7 +1241,6 @@ function generateDemoRoute(){
     if(demoPreviewMap){demoPreviewMap.remove();demoPreviewMap=null}
     demoPreviewMap=L.map('demo-preview-map',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(demoPreviewMap);
-    // Draw route
     const segs=[];let seg={phase:demoTrack[0].phase,pts:[[demoTrack[0].lat,demoTrack[0].lng]]};segs.push(seg);
     for(let i=1;i<demoTrack.length;i++){
       const p=demoTrack[i];
