@@ -217,7 +217,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
       <div class="setup-summary-sub" id="summary-sub"></div>
     </div>
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
-    <button onclick="goDemo()" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:16px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px">🎬 צור סרטון מדומה</button>
+    <button onclick="goDemo()" style="width:100%;padding:14px;background:none;border:1.5px solid var(--border);border-radius:16px;color:var(--muted);font-family:'Heebo',sans-serif;font-size:22px;font-weight:700;cursor:pointer;margin-top:10px">📽️</button>
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
@@ -232,7 +232,10 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
     <div class="card">
       <div class="card-title">📍 נקודת התחלה</div>
       <div class="card-hint">לחץ על המפה לבחירת מיקום התחלה</div>
-      <div id="demo-map" style="height:260px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--input)"></div>
+      <div style="position:relative">
+        <div id="demo-map" style="height:260px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--input)"></div>
+        <button id="demo-map-toggle" onclick="toggleMapMode(demoMap,this);if(demoPreviewMap)toggleMapMode(demoPreviewMap,null)" style="position:absolute;top:8px;left:8px;z-index:1000;background:rgba(8,8,16,.8);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;color:#fff">☀️</button>
+      </div>
       <div id="demo-location-label" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:right">לא נבחר מיקום</div>
     </div>
     <div class="card">
@@ -315,12 +318,15 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
     </div>
     <div class="sum-legend" id="sum-legend"></div>
     <div class="sum-map-wrap">
-      <div id="summary-map">
-        <div class="sum-map-offline" id="sum-no-gps" style="display:none">
-          <div style="font-size:36px">📡</div>
-          <div>לא נרשמו נקודות GPS</div>
-          <div style="font-size:12px;margin-top:4px">וודא שה-GPS פעיל ו-HTTPS פעיל</div>
+      <div style="position:relative">
+        <div id="summary-map">
+          <div class="sum-map-offline" id="sum-no-gps" style="display:none">
+            <div style="font-size:36px">📡</div>
+            <div>לא נרשמו נקודות GPS</div>
+            <div style="font-size:12px;margin-top:4px">וודא שה-GPS פעיל ו-HTTPS פעיל</div>
+          </div>
         </div>
+        <button id="sum-map-toggle" onclick="toggleMapMode(leafletMap,this)" style="position:absolute;top:10px;left:10px;z-index:1000;background:rgba(8,8,16,.8);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;color:#fff">☀️</button>
       </div>
     </div>
     <div class="sum-actions">
@@ -348,7 +354,10 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
       <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:1px">קצב</div>
     </div>
   </div>
-  <div id="mid-map" style="width:100%;max-width:340px;height:280px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
+  <div style="position:relative;width:100%;max-width:340px">
+    <div id="mid-map" style="height:280px;border-radius:16px;overflow:hidden;border:1px solid var(--border)"></div>
+    <button id="mid-map-toggle" onclick="toggleMapMode(midMap,this)" style="position:absolute;top:8px;left:8px;z-index:1000;background:rgba(8,8,16,.8);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;color:#fff">☀️</button>
+  </div>
   <button onclick="closeMidSummary()" style="border:1.5px solid var(--done);border-radius:14px;background:none;padding:14px 48px;font-family:'Heebo',sans-serif;font-size:17px;font-weight:800;color:var(--done);cursor:pointer;width:100%;max-width:340px">▶ המשך אימון</button>
   <button onclick="startVideoExport(true,midSnapTime,midSnapDist,midSnapTrack)" style="border:1.5px solid rgba(0,217,126,.35);border-radius:14px;background:rgba(0,217,126,.1);padding:13px 48px;font-family:'Heebo',sans-serif;font-size:16px;font-weight:800;color:var(--walk);cursor:pointer;width:100%;max-width:340px">⬇️</button>
 </div>
@@ -427,6 +436,20 @@ let gpsTrack=[],lastTrackTs=0;
 
 // Summary
 let leafletMap=null,replayInterval=null,doneStatsInterval=null;
+let mapMode='dark'; // 'dark' | 'light'
+function tileUrl(){
+  return mapMode==='dark'
+    ?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    :'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+}
+function toggleMapMode(mapObj,btnEl){
+  mapMode=mapMode==='dark'?'light':'dark';
+  if(btnEl)btnEl.textContent=mapMode==='dark'?'☀️':'🌙';
+  if(mapObj){
+    mapObj.eachLayer(l=>{if(l instanceof L.TileLayer)mapObj.removeLayer(l)});
+    L.tileLayer(tileUrl(),{subdomains:'abcd',maxZoom:19}).addTo(mapObj);
+  }
+}
 
 // ════════════════════════════════════════════
 // STORAGE
@@ -713,7 +736,7 @@ function showMidSummary(){
   if(midMap){midMap.remove();midMap=null}
   if(gpsTrack.length>=2){
     midMap=L.map('mid-map',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(midMap);
+    L.tileLayer(tileUrl(),{subdomains:'abcd',maxZoom:19}).addTo(midMap);
     // Draw track
     const segs=[];let seg={phase:gpsTrack[0].phase,pts:[[gpsTrack[0].lat,gpsTrack[0].lng]]};segs.push(seg);
     for(let i=1;i<gpsTrack.length;i++){const p=gpsTrack[i];if(p.phase===seg.phase)seg.pts.push([p.lat,p.lng]);else{seg={phase:p.phase,pts:[[gpsTrack[i-1].lat,gpsTrack[i-1].lng],[p.lat,p.lng]]};segs.push(seg)}}
@@ -866,7 +889,7 @@ async function loadTile(z,x,y){
   return new Promise(res=>{
     const img=new Image();img.crossOrigin='anonymous';
     img.onload=()=>res(img);img.onerror=()=>res(null);
-    img.src=`https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png`;
+    img.src=`https://a.basemaps.cartocdn.com/${mapMode==='dark'?'dark_all':'light_all'}/${z}/${x}/${y}.png`;
   });
 }
 
@@ -989,11 +1012,12 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
     ctx.font='500 11px Heebo,sans-serif';ctx.fillStyle='rgba(74,82,112,.7)';
     ctx.fillText(new Date().toLocaleDateString('he-IL'),16,22);
 
-    // Stat cards
+    // Stat cards — time counts up with animation
     const curDist=snapDist*progFrac;
-    const pace=formatPace(curDist,snapTime*progFrac);
+    const curTime=snapTime*progFrac;
+    const pace=formatPace(curDist,curTime);
     const stats=[
-      {label:'זמן',val:formatTime(snapTime),color:'#eef2ff'},
+      {label:'זמן',val:formatTime(curTime),color:'#eef2ff'},
       {label:'מרחק',val:formatDist(curDist),color:'#00d97e'},
       {label:'קצב',val:pace,color:'#818cf8'},
     ];
@@ -1058,8 +1082,10 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   window._videoShareData={get url(){return videoBlobUrl},get filename(){return videoFilename}};
   recorder.start(100);
 
-  // Animation
-  const FPS=30,DURATION=16;
+  // 2. Dynamic duration: 2.5s per km, max 20s — if longer, speed up (don't cut)
+  const FPS=30;
+  const idealDuration=Math.max(4,(snapDist/1000)*2.5);
+  const DURATION=Math.min(20,idealDuration); // cap display at 20s, speed compensates
   const totalFrames=FPS*DURATION;
   let frame=0,ptIdx=0;
   const ptsPerFrame=Math.max(1,snapTrack.length/totalFrames);
@@ -1186,7 +1212,7 @@ function goDemo(){
       // Default center: Israel
       const center=[31.7,35.2];
       demoMap=L.map('demo-map',{zoomControl:true,attributionControl:false});
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(demoMap);
+      L.tileLayer(tileUrl(),{subdomains:'abcd',maxZoom:19}).addTo(demoMap);
       demoMap.setView(center,13);
       // Try to center on user location
       navigator.geolocation?.getCurrentPosition(pos=>{
@@ -1268,7 +1294,7 @@ async function generateDemoRoute(){
   setTimeout(()=>{
     if(demoPreviewMap){demoPreviewMap.remove();demoPreviewMap=null}
     demoPreviewMap=L.map('demo-preview-map',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(demoPreviewMap);
+    L.tileLayer(tileUrl(),{subdomains:'abcd',maxZoom:19}).addTo(demoPreviewMap);
     const segs=[];let seg={phase:demoTrack[0].phase,pts:[[demoTrack[0].lat,demoTrack[0].lng]]};segs.push(seg);
     for(let i=1;i<demoTrack.length;i++){
       const p=demoTrack[i];
