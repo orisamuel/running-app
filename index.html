@@ -168,6 +168,8 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
 .bank-add-btn{width:50px;border-radius:12px;border:none;font-size:26px;cursor:pointer;color:#fff;transition:opacity .2s}
 .bank-add-btn:disabled{opacity:.3}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* ── OVERTIME ── */
+.overtime-banner{text-align:center;font-size:13px;color:var(--done);font-weight:700;letter-spacing:1px;margin-bottom:6px;opacity:.85}
 </style>
 </head>
 <body>
@@ -179,6 +181,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   <div class="top-bar" style="padding-bottom:4px">
     <h1>אוריצה 🏃</h1>
     <div style="display:flex;gap:8px">
+      <button class="btn-ghost" onclick="goHistory()">📊</button>
       <button class="btn-ghost" onclick="location.reload()">🔄</button>
       <button class="btn-ghost" onclick="goSettings()">⚙️</button>
     </div>
@@ -217,6 +220,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
       <div class="setup-summary-sub" id="summary-sub"></div>
     </div>
     <button class="btn-primary" onclick="startWorkout()">התחל אימון</button>
+    <button class="btn-primary" onclick="startFreeWorkout()" style="background:var(--walk);margin-top:10px">🏃 אימון חופשי</button>
     <div class="install-hint" id="install-hint"></div>
   </div>
 </div>
@@ -290,6 +294,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   </div>
   <div class="target-badge" id="target-badge"></div>
   <div class="dots-row" id="dots-row"></div>
+  <div class="overtime-banner" id="overtime-banner" style="display:none">✅ סיים כשתרצה</div>
   <button class="pause-btn" id="pause-btn" onclick="togglePause()">⏸ עצור</button>
   <div id="done-stats" class="done-stats"></div>
 </div>
@@ -477,6 +482,21 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   </div>
 </div>
 
+<!-- ════════════════ HISTORY ════════════════ -->
+<div class="screen" id="screen-history">
+  <div class="bank-header safe-top">
+    <div class="bank-title">📊 היסטוריה</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" onclick="clearHistory()" style="font-size:12px">נקה הכל</button>
+      <button class="btn-ghost" onclick="goSetup()">← חזור</button>
+    </div>
+  </div>
+  <div class="screen-scroll" style="padding:0 16px 32px">
+    <div id="history-chart" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0;display:none"></div>
+    <div id="history-list" style="margin-top:4px"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const SETTINGS_KEY='running_settings_v1';
@@ -569,7 +589,7 @@ const PHASE_META={
   walk:  {label:'הליכה',emoji:'🚶',color:'#00d97e'},
 };
 const CIRCLE_C=2*Math.PI*105;
-const BANK_KEY='running_bank_v2',WORKOUT_KEY='running_workout_v2',STATE_KEY='running_state_v2';
+const BANK_KEY='running_bank_v2',WORKOUT_KEY='running_workout_v2',STATE_KEY='running_state_v2',HISTORY_KEY='running_history_v1';
 const DEFAULT_BANK={
   run:['אלוף שכמותך, תמשיך ככה!','יאללה מלך, אתה שורף אותה!',
        'תראה אותך רץ, מגעיל כמה שאתה טוב!','בן אדם, אתה מכונה!',
@@ -588,8 +608,9 @@ let phases=[{id:1,type:'warmup',secs:300},{id:2,type:'run',secs:120},{id:3,type:
 let repeat=1,nextId=4,bank=null,activeBankTab='run',targetMeters=0,targetUnit='m';
 
 let expandedPhases=[],phaseIdx=0;
-let workoutStartWall=0,phaseStartWall=0,pausedAt=0,totalPausedMs=0;
+let workoutStartWall=0,phaseStartWall=0,pausedAt=0,totalPausedMs=0,allPhasePausedMs=0;
 let isRunning=false,isDone=false,timerInterval=null;
+let isFreeWorkout=false,isOvertimeMode=false,overtimeBaseElapsed=0;
 let announced30=false,announcedHalf=false,lastAnnounceWall=0;
 let finalElapsedSecs=0,finalDistance=0;
 
@@ -618,6 +639,68 @@ function toggleMapMode(mapObj,btnEl){
 // ════════════════════════════════════════════
 // STORAGE
 // ════════════════════════════════════════════
+function loadHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[]}catch{return[]}}
+function saveWorkoutToHistory(){
+  if(finalElapsedSecs<20)return;
+  const h=loadHistory();
+  h.push({date:Date.now(),elapsed:finalElapsedSecs,distance:finalDistance,
+    phases:[...new Set(expandedPhases.map(p=>p.type))],free:isFreeWorkout});
+  if(h.length>60)h.splice(0,h.length-60);
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(h));
+}
+function clearHistory(){if(confirm('למחוק את כל ההיסטוריה?')){localStorage.removeItem(HISTORY_KEY);renderHistory()}}
+function goHistory(){showScreen('screen-history');renderHistory()}
+function renderHistory(){
+  const h=loadHistory();
+  const listEl=document.getElementById('history-list');
+  const chartEl=document.getElementById('history-chart');
+  if(!h.length){listEl.innerHTML='<p style="text-align:center;color:var(--muted);margin:48px 0 12px;font-size:14px">אין אימונים עדיין 🏃</p>';chartEl.style.display='none';return}
+  // Chart — only workouts with GPS
+  const withGPS=h.filter(w=>w.distance>100);
+  if(withGPS.length>=2){
+    chartEl.style.display='block';
+    const last=withGPS.slice(-10);
+    const W=320,H=110;
+    const paces=last.map(w=>(w.elapsed/w.distance)*1000);
+    const mn=Math.min(...paces),mx=Math.max(...paces),rng=mx-mn||1;
+    const pts=last.map((w,i)=>{
+      const x=20+(i/(last.length-1))*(W-40);
+      const p=(w.elapsed/w.distance)*1000;
+      const y=H-16-((mx-p)/rng)*(H-36);
+      return{x,y,p};
+    });
+    const d=pts.map((p,i)=>`${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const fillD=`${d} L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
+    const arrow=paces[paces.length-1]<paces[0]?'↑ השתפרת!':'';
+    chartEl.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;font-weight:700;letter-spacing:1px">קצב ממוצע — ${last.length} אימונים אחרונים <span style="color:var(--walk)">${arrow}</span></div>
+<svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible">
+  <defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#818cf8" stop-opacity=".28"/><stop offset="100%" stop-color="#818cf8" stop-opacity="0"/></linearGradient></defs>
+  <path d="${fillD}" fill="url(#hg)"/>
+  <path d="${d}" stroke="#818cf8" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  ${pts.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#818cf8"/>`).join('')}
+  <text x="${pts[0].x}" y="${pts[0].y-9}" text-anchor="middle" font-size="10" fill="rgba(180,180,210,.65)" font-family="Heebo,sans-serif">${formatTime(pts[0].p)}</text>
+  <text x="${pts[pts.length-1].x}" y="${pts[pts.length-1].y-9}" text-anchor="middle" font-size="10" fill="#818cf8" font-family="Heebo,sans-serif" font-weight="700">${formatTime(paces[paces.length-1])}</text>
+</svg>`;
+  }else{chartEl.style.display='none'}
+  // List (newest first)
+  listEl.innerHTML='';
+  [...h].reverse().forEach(w=>{
+    const dd=new Date(w.date);
+    const dateStr=dd.toLocaleDateString('he-IL')+' '+dd.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    const phaseIcons=(w.phases||[]).map(p=>PHASE_META[p]?.emoji||'').join('');
+    const div=document.createElement('div');div.className='card';div.style.marginBottom='10px';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:12px;color:var(--muted)">${dateStr}</div>
+      <div style="font-size:12px;color:var(--muted)">${w.free?'חופשי 🏃':phaseIcons}</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div style="flex:1;text-align:center"><div style="font-size:19px;font-weight:800">${formatTime(w.elapsed)}</div><div style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:700;letter-spacing:1px">זמן</div></div>
+      <div style="flex:1;text-align:center"><div style="font-size:19px;font-weight:800;color:var(--walk)">${w.distance>100?formatDist(w.distance):'--'}</div><div style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:700;letter-spacing:1px">מרחק</div></div>
+      <div style="flex:1;text-align:center"><div style="font-size:19px;font-weight:800;color:var(--done)">${w.distance>100?formatPace(w.distance,w.elapsed):'--'}</div><div style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:700;letter-spacing:1px">קצב</div></div>
+    </div>`;
+    listEl.appendChild(div);
+  });
+}
 function loadBank(){try{bank=JSON.parse(localStorage.getItem(BANK_KEY))||JSON.parse(JSON.stringify(DEFAULT_BANK))}catch{bank=JSON.parse(JSON.stringify(DEFAULT_BANK))}}
 function saveBank(){localStorage.setItem(BANK_KEY,JSON.stringify(bank))}
 function loadWorkout(){
@@ -742,18 +825,42 @@ function buildExpandedPhases(){
   return exp;
 }
 function elapsedInPhaseSecs(){return((pausedAt||Date.now())-phaseStartWall-totalPausedMs)/1000}
-function totalElapsedSecs(){return((pausedAt||Date.now())-workoutStartWall-totalPausedMs)/1000}
+function totalElapsedSecs(){return((pausedAt||Date.now())-workoutStartWall-allPhasePausedMs)/1000}
 
 function startWorkout(){
   saveWorkout();
+  isFreeWorkout=false;isOvertimeMode=false;overtimeBaseElapsed=0;
   expandedPhases=buildExpandedPhases();phaseIdx=0;totalDistance=0;lastPos=null;isDone=false;
   gpsStatus='requesting';targetWarned=false;targetReached=false;gpsTrack=[];lastTrackTs=0;
-  const now=Date.now();workoutStartWall=now;phaseStartWall=now;totalPausedMs=0;pausedAt=0;
+  const now=Date.now();workoutStartWall=now;phaseStartWall=now;totalPausedMs=0;allPhasePausedMs=0;pausedAt=0;
   announced30=false;announcedHalf=false;lastAnnounceWall=now;isRunning=true;
+  document.getElementById('overtime-banner').style.display='none';
+  const btn=document.getElementById('pause-btn');btn.textContent='⏸ עצור';btn.onclick=togglePause;btn.style.borderColor='';btn.style.color='';
   startWakeLock();startGPS();goTimer();buildTimerDots();updateTimerUI();
   applyPhaseColor(expandedPhases[0].type);
   timerInterval=setInterval(tick,250);
   speak(`מתחילים ${PHASE_META[expandedPhases[0].type].label}. קדימה!`);
+}
+
+function startFreeWorkout(){
+  isFreeWorkout=true;isOvertimeMode=false;overtimeBaseElapsed=0;
+  expandedPhases=[{id:1,type:'run',secs:Infinity,eid:'free-0'}];
+  phaseIdx=0;totalDistance=0;lastPos=null;isDone=false;
+  gpsStatus='requesting';targetWarned=false;targetReached=false;gpsTrack=[];lastTrackTs=0;
+  const now=Date.now();workoutStartWall=now;phaseStartWall=now;totalPausedMs=0;allPhasePausedMs=0;pausedAt=0;
+  lastAnnounceWall=now;isRunning=true;
+  document.getElementById('overtime-banner').style.display='none';
+  document.getElementById('dots-row').innerHTML='';
+  const btn=document.getElementById('pause-btn');btn.textContent='⏸ עצור';btn.onclick=togglePause;btn.style.borderColor='';btn.style.color='';
+  startWakeLock();startGPS();goTimer();
+  applyPhaseColor('run');
+  document.getElementById('timer-step').textContent='אימון חופשי';
+  document.getElementById('timer-phase-label').textContent='ריצה חופשית 🏃';
+  document.getElementById('timer-phase-label').style.color=PHASE_META.run.color;
+  document.getElementById('timer-countdown').textContent='00:00';
+  document.getElementById('timer-countdown').style.color=PHASE_META.run.color;
+  timerInterval=setInterval(tick,250);
+  speak('אימון חופשי. קדימה!');
 }
 
 function remainingText(idx,tl){
@@ -762,8 +869,33 @@ function remainingText(idx,tl){
   return`נשאר עוד ${m===1?'דקה אחת':m+' דקות'} לסיום`;
 }
 
+function tickFree(){
+  const te=totalElapsedSecs();
+  // Announce every 3 minutes
+  if((Date.now()-lastAnnounceWall)/1000>=180){
+    lastAnnounceWall=Date.now();
+    const distPart=totalDistance>100?` ורצת ${formatDist(totalDistance)}`:'';
+    speak(`עברו ${formatDuration(Math.round(te))}${distPart}. תמשיך!`);
+  }
+  // Update ring — fills every 10 minutes
+  const frac=(te%600)/600;
+  const ring=document.getElementById('timer-ring');
+  ring.style.strokeDashoffset=CIRCLE_C*(1-frac);ring.style.stroke=PHASE_META.run.color;
+  document.getElementById('timer-countdown').textContent=formatTime(te);
+  document.getElementById('timer-elapsed').textContent=`⏱ ${formatTime(te)}`;
+}
+
+function tickOvertime(){
+  const te=totalElapsedSecs();
+  const ot=te-overtimeBaseElapsed;
+  document.getElementById('timer-countdown').textContent='+'+formatTime(ot);
+  document.getElementById('timer-elapsed').textContent=`⏱ ${formatTime(te)}`;
+}
+
 function tick(){
   if(!isRunning||pausedAt)return;
+  if(isFreeWorkout){tickFree();return}
+  if(isOvertimeMode){tickOvertime();return}
   const ph=expandedPhases[phaseIdx],ep=elapsedInPhaseSecs(),tl=Math.max(0,ph.secs-ep);
 
   // 3-2-1
@@ -797,12 +929,7 @@ function advancePhase(){
   try{navigator.vibrate?.(400)}catch{}
   const next=phaseIdx+1;
   if(next>=expandedPhases.length){
-    isDone=true;isRunning=false;
-    finalElapsedSecs=totalElapsedSecs();finalDistance=totalDistance;
-    clearInterval(timerInterval);stopWakeLock();
-    speak(rand(DONE_MSGS));
-    try{navigator.vibrate?.([400,200,400,200,600])}catch{}
-    showDoneUI();
+    enterOvertimeMode();
   }else{
     phaseIdx=next;announced30=false;announcedHalf=false;
     phaseStartWall=Date.now();totalPausedMs=0;lastAnnounceWall=Date.now();
@@ -812,19 +939,56 @@ function advancePhase(){
   }
 }
 
+function enterOvertimeMode(){
+  isOvertimeMode=true;
+  overtimeBaseElapsed=totalElapsedSecs();
+  try{navigator.vibrate?.([400,200,400,200,600])}catch{}
+  speak('הגעת לסוף! תסיים כשתרצה.');
+  applyPhaseColor('walk');
+  document.getElementById('timer-phase-label').textContent='סיים כשתרצה ✓';
+  document.getElementById('timer-phase-label').style.color='var(--walk)';
+  document.getElementById('timer-countdown').textContent='+00:00';
+  document.getElementById('timer-countdown').style.color='var(--done)';
+  const ring=document.getElementById('timer-ring');ring.style.strokeDashoffset=0;ring.style.stroke='var(--done)';
+  document.getElementById('overtime-banner').style.display='block';
+  const btn=document.getElementById('pause-btn');
+  btn.textContent='✓ סיים אימון';btn.style.borderColor='var(--done)';btn.style.color='var(--done)';
+  btn.onclick=finishWorkout;
+}
+
+function finishWorkout(){
+  if(!isRunning&&!isOvertimeMode&&!isFreeWorkout)return;
+  isDone=true;isRunning=false;
+  finalElapsedSecs=totalElapsedSecs();finalDistance=totalDistance;
+  clearInterval(timerInterval);stopWakeLock();stopGPS();
+  speak(rand(DONE_MSGS));
+  try{navigator.vibrate?.([400,200,400,200,600])}catch{}
+  document.getElementById('phase-glow').style.display='none';
+  document.getElementById('bg-warning').style.display='none';
+  document.getElementById('overtime-banner').style.display='none';
+  setTimeout(goSummary,1200);
+}
+
 function togglePause(){
   if(isDone)return;
   if(isRunning){pausedAt=Date.now();isRunning=false;document.getElementById('pause-btn').textContent='▶ המשך';speak('הפסקה')}
-  else{totalPausedMs+=Date.now()-pausedAt;pausedAt=0;isRunning=true;lastAnnounceWall=Date.now();document.getElementById('pause-btn').textContent='⏸ עצור';speak('ממשיכים!')}
+  else{const diff=Date.now()-pausedAt;totalPausedMs+=diff;allPhasePausedMs+=diff;pausedAt=0;isRunning=true;lastAnnounceWall=Date.now();document.getElementById('pause-btn').textContent='⏸ עצור';speak('ממשיכים!')}
 }
 
-function confirmExit(){if(confirm('לסיים את האימון?'))exitTimer()}
+function confirmExit(){
+  if(isOvertimeMode){finishWorkout();return}
+  if(!confirm('לסיים את האימון?'))return;
+  if(isFreeWorkout){finishWorkout()}else{exitTimer()}
+}
 function exitTimer(){
   clearInterval(timerInterval);clearInterval(doneStatsInterval);
   stopGPS();stopWakeLock();isRunning=false;isDone=false;
+  isFreeWorkout=false;isOvertimeMode=false;
   window.speechSynthesis?.cancel();
   document.getElementById('phase-glow').style.display='none';
   document.getElementById('bg-warning').style.display='none';
+  document.getElementById('overtime-banner').style.display='none';
+  const btn=document.getElementById('pause-btn');btn.textContent='⏸ עצור';btn.onclick=togglePause;btn.style.borderColor='';btn.style.color='';
   goSetup();
 }
 
@@ -884,7 +1048,7 @@ document.addEventListener('visibilitychange',()=>{
     resetSpeech();
 
     if(isRunning){
-      updateTimerUI();
+      if(!isFreeWorkout&&!isOvertimeMode)updateTimerUI();
 
       // 1. Speech: only reset lastAnnounceWall if less than 3 min passed in background
       //    otherwise allow immediate announcement
@@ -962,6 +1126,8 @@ function closeMidSummary(){
 // ════════════════════════════════════════════
 function goSummary(){
   clearInterval(doneStatsInterval);
+  saveWorkoutToHistory();
+  isFreeWorkout=false;isOvertimeMode=false;
   showScreen('screen-summary');
   const hero=rand(DONE_HEROES);
   const name=settings.userName?` ${settings.userName}`:'';
@@ -992,10 +1158,7 @@ function initSummaryMap(){
     return;
   }
   leafletMap=L.map('summary-map',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
-  // Dark CartoDB tiles
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    subdomains:'abcd',maxZoom:19
-  }).addTo(leafletMap);
+  L.tileLayer(tileUrl(),{subdomains:'abcd',maxZoom:19}).addTo(leafletMap);
   L.control.attribution({prefix:false,position:'bottomleft'}).addTo(leafletMap);
   L.control.zoom({position:'bottomright'}).addTo(leafletMap);
 
@@ -1294,34 +1457,34 @@ async function startVideoExport(isMid=false, snapTime=null, snapDist=null, snapT
   window._videoShareData={get url(){return videoBlobUrl},get filename(){return videoFilename}};
   recorder.start(100);
 
-  // Dynamic duration: 2.5s per km, max 20s — if longer, speed up
-  const FPS=30;
+  // Dynamic duration: 2.5s per km, max 20s
   const idealDuration=Math.max(4,(snapDist/1000)*2.5);
   const DURATION=Math.min(20,idealDuration);
-  const totalFrames=Math.round(FPS*DURATION);
-  let frame=0;
 
   // Turn off image smoothing for crisp runner image
   ctx.imageSmoothingEnabled=false;
 
+  // Time-based rendering so on-screen animation matches recorded video exactly
+  const _animStart=performance.now();
   function renderFrame(){
-    const progFrac=Math.min(1,frame/Math.max(1,totalFrames-1));
+    const progFrac=Math.min(1,(performance.now()-_animStart)/(DURATION*1000));
     drawMapLayer();
     drawTrackUp(progFrac);
     drawDotAt(progFrac);
     drawStartEndMarkersAt(progFrac);
     drawHeader(progFrac);drawFooter(progFrac);
-    frame++;
-    progFill.style.width=`${50+frame/totalFrames*45|0}%`;
+    progFill.style.width=`${50+progFrac*45|0}%`;
 
-    if(frame<totalFrames){
+    if(progFrac<1){
       requestAnimationFrame(renderFrame);
     }else{
-      let hold=0;const hi=setInterval(()=>{
-        drawMapLayer();drawTrackUp(1);
-        drawStartEndMarkersAt(1);drawHeader(1);drawFooter(1);
-        if(++hold>=90){clearInterval(hi);recorder.stop()}
-      },33);
+      // Hold final frame for 3s then stop recorder
+      const _holdEnd=performance.now()+3000;
+      function holdFrame(){
+        drawMapLayer();drawTrackUp(1);drawStartEndMarkersAt(1);drawHeader(1);drawFooter(1);
+        if(performance.now()<_holdEnd){requestAnimationFrame(holdFrame)}else{recorder.stop()}
+      }
+      requestAnimationFrame(holdFrame);
     }
   }
   requestAnimationFrame(renderFrame);
@@ -1537,7 +1700,7 @@ function startDemoVideoExport(){
 // NAVIGATION
 // ════════════════════════════════════════════
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function goSetup(){clearInterval(replayInterval);showScreen('screen-setup');renderSetup()}
+function goSetup(){clearInterval(replayInterval);isFreeWorkout=false;isOvertimeMode=false;showScreen('screen-setup');renderSetup()}
 function goTimer(){showScreen('screen-timer')}
 function goBank(){showScreen('screen-bank');renderBank()}
 
