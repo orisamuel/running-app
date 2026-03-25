@@ -295,6 +295,7 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   <div class="target-badge" id="target-badge"></div>
   <div class="dots-row" id="dots-row"></div>
   <div class="overtime-banner" id="overtime-banner" style="display:none">✅ סיים כשתרצה</div>
+  <div id="warmup-skip-badge" style="display:none;font-size:12px;color:var(--warmup);text-align:center;margin-bottom:4px;font-weight:700">🚶 החימום לא נמדד</div>
   <button class="pause-btn" id="pause-btn" onclick="togglePause()">⏸ עצור</button>
   <div id="done-stats" class="done-stats"></div>
 </div>
@@ -482,6 +483,15 @@ h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
   </div>
 </div>
 
+<!-- Warmup measure modal -->
+<div id="warmup-modal" style="display:none;position:fixed;inset:0;background:rgba(8,8,16,.96);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:18px">
+  <div style="font-size:48px">🚶</div>
+  <div style="font-size:22px;font-weight:900;text-align:center">למדוד את החימום?</div>
+  <div style="font-size:14px;color:var(--muted);text-align:center;line-height:1.7">האם זמן ומרחק שלב<br>החימום ייכנסו לסיכום הסופי?</div>
+  <button onclick="startWorkoutConfirmed(true)" style="width:100%;max-width:320px;padding:18px;border:none;border-radius:16px;background:var(--run);color:#fff;font-family:'Heebo',sans-serif;font-size:17px;font-weight:800;cursor:pointer">כן, מדוד מהתחלה</button>
+  <button onclick="startWorkoutConfirmed(false)" style="width:100%;max-width:320px;padding:16px;border:1.5px solid var(--border);border-radius:16px;background:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:16px;font-weight:700;cursor:pointer">לא — התחל למדוד אחרי החימום</button>
+</div>
+
 <!-- ════════════════ HISTORY ════════════════ -->
 <div class="screen" id="screen-history">
   <div class="bank-header safe-top">
@@ -611,6 +621,7 @@ let expandedPhases=[],phaseIdx=0;
 let workoutStartWall=0,phaseStartWall=0,pausedAt=0,totalPausedMs=0,allPhasePausedMs=0;
 let isRunning=false,isDone=false,timerInterval=null;
 let isFreeWorkout=false,isOvertimeMode=false,overtimeBaseElapsed=0;
+let skipWarmupMeasure=false;
 let announced30=false,announcedHalf=false,lastAnnounceWall=0;
 let finalElapsedSecs=0,finalDistance=0;
 
@@ -772,7 +783,7 @@ function startGPS(){
   geoWatch=navigator.geolocation.watchPosition(pos=>{
     if(!isRunning)return;
     const{latitude:lat,longitude:lng}=pos.coords;
-    if(lastPos){const d=haversine(lastPos.lat,lastPos.lng,lat,lng);if(d<50){totalDistance+=d;checkTarget()}}
+    if(lastPos){const d=haversine(lastPos.lat,lastPos.lng,lat,lng);if(d<50){if(!skipWarmupMeasure||phaseIdx>0){totalDistance+=d;checkTarget()}}}
     lastPos={lat,lng};gpsStatus='active';
     const now=Date.now();
     if(now-lastTrackTs>=3000){
@@ -829,6 +840,17 @@ function totalElapsedSecs(){return((pausedAt||Date.now())-workoutStartWall-allPh
 
 function startWorkout(){
   saveWorkout();
+  // If first phase is warmup, ask whether to measure it
+  if(phases[0]?.type==='warmup'){
+    document.getElementById('warmup-modal').style.display='flex';
+    return;
+  }
+  startWorkoutConfirmed(true);
+}
+
+function startWorkoutConfirmed(measureWarmup){
+  document.getElementById('warmup-modal').style.display='none';
+  skipWarmupMeasure=!measureWarmup;
   isFreeWorkout=false;isOvertimeMode=false;overtimeBaseElapsed=0;
   expandedPhases=buildExpandedPhases();phaseIdx=0;totalDistance=0;lastPos=null;isDone=false;
   gpsStatus='requesting';targetWarned=false;targetReached=false;gpsTrack=[];lastTrackTs=0;
@@ -836,6 +858,7 @@ function startWorkout(){
   announced30=false;announcedHalf=false;lastAnnounceWall=now;isRunning=true;
   document.getElementById('overtime-banner').style.display='none';
   const btn=document.getElementById('pause-btn');btn.textContent='⏸ עצור';btn.onclick=togglePause;btn.style.borderColor='';btn.style.color='';
+  document.getElementById('warmup-skip-badge').style.display=skipWarmupMeasure?'block':'none';
   startWakeLock();startGPS();goTimer();buildTimerDots();updateTimerUI();
   applyPhaseColor(expandedPhases[0].type);
   timerInterval=setInterval(tick,250);
@@ -932,7 +955,10 @@ function advancePhase(){
     enterOvertimeMode();
   }else{
     phaseIdx=next;announced30=false;announcedHalf=false;
-    phaseStartWall=Date.now();totalPausedMs=0;lastAnnounceWall=Date.now();
+    const nowAdv=Date.now();phaseStartWall=nowAdv;totalPausedMs=0;lastAnnounceWall=nowAdv;
+    // If skipping warmup measurement and warmup just ended — reset stat clock
+    if(skipWarmupMeasure&&next===1){workoutStartWall=nowAdv;allPhasePausedMs=0;}
+    document.getElementById('warmup-skip-badge').style.display='none';
     const ph=expandedPhases[next];applyPhaseColor(ph.type);
     speak(`${PHASE_META[ph.type].label}! ${ph.type==='run'?'קדימה!':'נשמו.'}`);
     updateTimerUI();
@@ -983,11 +1009,13 @@ function confirmExit(){
 function exitTimer(){
   clearInterval(timerInterval);clearInterval(doneStatsInterval);
   stopGPS();stopWakeLock();isRunning=false;isDone=false;
-  isFreeWorkout=false;isOvertimeMode=false;
+  isFreeWorkout=false;isOvertimeMode=false;skipWarmupMeasure=false;
   window.speechSynthesis?.cancel();
   document.getElementById('phase-glow').style.display='none';
   document.getElementById('bg-warning').style.display='none';
   document.getElementById('overtime-banner').style.display='none';
+  document.getElementById('warmup-skip-badge').style.display='none';
+  document.getElementById('warmup-modal').style.display='none';
   const btn=document.getElementById('pause-btn');btn.textContent='⏸ עצור';btn.onclick=togglePause;btn.style.borderColor='';btn.style.color='';
   goSetup();
 }
